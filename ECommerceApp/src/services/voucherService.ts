@@ -8,13 +8,10 @@ import { computeVoucherDiscount } from '../utils/pricing';
  * Service quản lý và kiểm tra mã giảm giá (Vouchers) 100% từ Cloud Firestore.
  */
 export const VoucherService = {
-  /** Lấy danh sách toàn bộ vouchers khả dụng từ Firestore */
+  /** Lấy danh sách toàn bộ mã giảm giá khả dụng từ collection 'promos' trong Firestore */
   async listVouchers(): Promise<Voucher[]> {
     try {
-      let snap = await getDocs(collection(db, 'promos'));
-      if (snap.empty) {
-        snap = await getDocs(collection(db, 'vouchers'));
-      }
+      const snap = await getDocs(collection(db, 'promos'));
       return snap.docs
         .map((d) => ({ id: d.id, ...(d.data() as Omit<Voucher, 'id'>) }))
         .filter((v) => v.isActive !== false);
@@ -41,10 +38,7 @@ export const VoucherService = {
     let voucher: Voucher | null = null;
 
     try {
-      let snap = await getDoc(doc(db, 'promos', normalized));
-      if (!snap.exists()) {
-        snap = await getDoc(doc(db, 'vouchers', normalized));
-      }
+      const snap = await getDoc(doc(db, 'promos', normalized));
       if (snap.exists()) {
         voucher = { id: snap.id, ...(snap.data() as Omit<Voucher, 'id'>) };
       }
