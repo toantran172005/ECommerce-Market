@@ -135,13 +135,17 @@ export const OrderService = {
           shipSnap = await transaction.get(shipRef);
         }
 
-        // 3. Đọc voucher (nếu có)
-        let voucherRef: any = null;
-        let voucherSnap: any = null;
+        // 3. Đọc mã giảm giá từ collection 'promos' (chuẩn SDS)
+        let activeVoucherRef: any = null;
+        let activeVoucherSnap: any = null;
         if (input.voucherCode) {
           const vCode = input.voucherCode.trim().toUpperCase();
-          voucherRef = doc(db, 'vouchers', vCode);
-          voucherSnap = await transaction.get(voucherRef);
+          const promoRef = doc(db, 'promos', vCode);
+          const promoSnap = await transaction.get(promoRef);
+          if (promoSnap.exists()) {
+            activeVoucherRef = promoRef;
+            activeVoucherSnap = promoSnap;
+          }
         }
 
         // ========================================================
@@ -205,23 +209,45 @@ export const OrderService = {
         let isFreeShip = false;
         let voucherUpdate: { ref: any; newUsedCount: number } | null = null;
 
-        if (voucherSnap && voucherSnap.exists() && voucherRef) {
-          const voucher = voucherSnap.data() as Voucher;
-          if (voucher.isActive && voucher.usedCount < voucher.usageLimit) {
+        if (activeVoucherSnap && activeVoucherSnap.exists() && activeVoucherRef) {
+          const rawVoucher = activeVoucherSnap.data();
+          const voucher: Voucher = {
+            id: activeVoucherSnap.id,
+            code: rawVoucher.code || activeVoucherSnap.id,
+            title: rawVoucher.title || rawVoucher.description || 'Mã giảm giá',
+            description: rawVoucher.description || '',
+            type: rawVoucher.type || (rawVoucher.discountPercent ? 'percent' : 'fixed'),
+            value: rawVoucher.value ?? rawVoucher.discountPercent ?? 0,
+            minOrderValue: rawVoucher.minOrderValue ?? 0,
+            maxDiscount: rawVoucher.maxDiscount,
+            usageLimit: rawVoucher.usageLimit ?? 999999,
+            usedCount: rawVoucher.usedCount ?? 0,
+            isActive: rawVoucher.isActive !== false,
+            startsAt: rawVoucher.startsAt || '',
+            expiresAt: rawVoucher.expiresAt || '',
+          };
+
+          const isNotExpired = !voucher.expiresAt || new Date(voucher.expiresAt).getTime() >= Date.now();
+          const isUnderUsageLimit = !voucher.usageLimit || voucher.usageLimit <= 0 || voucher.usedCount < voucher.usageLimit;
+
+          if (voucher.isActive && isNotExpired && isUnderUsageLimit) {
             if (computedSubtotal >= voucher.minOrderValue) {
               discount = computeVoucherDiscount(voucher, computedSubtotal, baseShipping);
-              if (voucher.type === 'freeShip') isFreeShip = true;
+              if (voucher.type === 'freeShip' || voucher.code.toUpperCase().includes('FREESHIP')) {
+                isFreeShip = true;
+                discount = baseShipping;
+              }
 
               voucherUpdate = {
-                ref: voucherRef,
-                newUsedCount: (voucher.usedCount ?? 0) + 1,
+                ref: activeVoucherRef,
+                newUsedCount: (rawVoucher.usedCount ?? 0) + 1,
               };
             }
           }
         }
 
         const shippingFee = isFreeShip ? 0 : baseShipping;
-        const totalAmount = computedSubtotal - discount + shippingFee;
+        const totalAmount = Math.max(0, computedSubtotal - discount + shippingFee);
 
         // ========================================================
         // GIAI ĐOẠN 2: TẤT CẢ CÁC LỆNH GHI (WRITES ONLY)
@@ -372,8 +398,13 @@ export const OrderService = {
         let voucherRef: any = null;
         let voucherSnap: any = null;
         if (order.voucherCode) {
-          voucherRef = doc(db, 'vouchers', order.voucherCode);
-          voucherSnap = await transaction.get(voucherRef);
+          const vCode = order.voucherCode.trim().toUpperCase();
+          const promoRef = doc(db, 'promos', vCode);
+          const promoSnap = await transaction.get(promoRef);
+          if (promoSnap.exists()) {
+            voucherRef = promoRef;
+            voucherSnap = promoSnap;
+          }
         }
 
         // ==========================================

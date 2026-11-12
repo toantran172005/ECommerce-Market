@@ -170,6 +170,7 @@ export interface Voucher {
   id: string;
   code: string;
   title: string;
+  description?: string;
   type: VoucherType;
   /** % giảm hoặc số tiền giảm. */
   value: number;

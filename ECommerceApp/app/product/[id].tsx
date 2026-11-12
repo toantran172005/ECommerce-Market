@@ -62,7 +62,8 @@ export default function ProductDetailScreen() {
   );
 
   const [activeImage, setActiveImage] = useState(0);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(undefined);
+  const [selectedColorId, setSelectedColorId] = useState<string | undefined>(undefined);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | undefined>(undefined);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -96,12 +97,27 @@ export default function ProductDetailScreen() {
   }, [productId]);
 
   useEffect(() => {
-    if (product?.variants?.length) {
-      setSelectedVariantId(product.variants[0].id);
+    if (colorVariants.length > 0) {
+      setSelectedColorId(colorVariants[0].id);
     } else {
-      setSelectedVariantId(undefined);
+      setSelectedColorId(undefined);
     }
-  }, [product]);
+  }, [colorVariants]);
+
+  useEffect(() => {
+    if (otherVariants.length > 0) {
+      setSelectedOptionId(otherVariants[0].id);
+    } else {
+      setSelectedOptionId(undefined);
+    }
+  }, [otherVariants]);
+
+  const effectiveVariantId = useMemo(() => {
+    if (selectedColorId && selectedOptionId) {
+      return `${selectedColorId}__${selectedOptionId}`;
+    }
+    return selectedColorId || selectedOptionId;
+  }, [selectedColorId, selectedOptionId]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -152,10 +168,10 @@ export default function ProductDetailScreen() {
       );
       return;
     }
-    addItem(product, 1, selectedVariantId);
+    addItem(product, 1, effectiveVariantId);
     setToastMessage('Đã thêm vào giỏ hàng');
     setToastVisible(true);
-  }, [product, isOutOfStock, addItem, selectedVariantId, user, router]);
+  }, [product, isOutOfStock, addItem, effectiveVariantId, user, router]);
 
   const handleBuyNow = useCallback(() => {
     if (!product || isOutOfStock) return;
@@ -170,9 +186,9 @@ export default function ProductDetailScreen() {
       );
       return;
     }
-    addItem(product, 1, selectedVariantId);
+    addItem(product, 1, effectiveVariantId);
     router.push('/checkout');
-  }, [product, isOutOfStock, addItem, selectedVariantId, router, user]);
+  }, [product, isOutOfStock, addItem, effectiveVariantId, router, user]);
 
   if (loading) {
     return <LoadingView />;
@@ -319,8 +335,8 @@ export default function ProductDetailScreen() {
                   <Chip
                     key={variant.id}
                     label={variant.name}
-                    selected={selectedVariantId === variant.id}
-                    onPress={() => setSelectedVariantId(variant.id)}
+                    selected={selectedColorId === variant.id}
+                    onPress={() => setSelectedColorId(variant.id)}
                   />
                 ))}
               </View>
@@ -336,8 +352,8 @@ export default function ProductDetailScreen() {
                   <Chip
                     key={variant.id}
                     label={variant.name}
-                    selected={selectedVariantId === variant.id}
-                    onPress={() => setSelectedVariantId(variant.id)}
+                    selected={selectedOptionId === variant.id}
+                    onPress={() => setSelectedOptionId(variant.id)}
                   />
                 ))}
               </View>

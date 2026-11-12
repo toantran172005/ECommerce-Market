@@ -128,7 +128,12 @@ export function CartProvider({
           id: key,
           variantId,
           variantName: variantId
-            ? product.variants?.find((v) => v.id === variantId)?.name ?? variantId
+            ? variantId.includes('__')
+              ? variantId
+                  .split('__')
+                  .map((id) => product.variants?.find((v) => v.id === id)?.name ?? id)
+                  .join(' - ')
+              : product.variants?.find((v) => v.id === variantId)?.name ?? variantId
             : undefined,
           selected: true,
         },

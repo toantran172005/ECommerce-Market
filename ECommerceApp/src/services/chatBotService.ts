@@ -1035,6 +1035,8 @@ QUY TẮC XỬ LÝ QUAN TRỌNG:
   -> BẮT BUỘC gán ID của các mẫu bạn gợi ý vào mảng "productIds" (ví dụ: ["asus-vivobook-15-oled", "lenovo-ideapad-slim-3"]) để giao diện hiển thị đúng thẻ của các sản phẩm đó!
 - Nếu người dùng hỏi mua thương hiệu cụ thể (ví dụ: "có asus đi", "cho xem tai nghe sony"):
   -> Tìm đúng các sản phẩm Asus/Sony trong danh mục và gán ID vào "productIds"!
+- Khi người dùng hỏi về bất kỳ ngành hàng/danh mục nào (ví dụ: "có điện thoại không", "tìm tai nghe", "xem laptop", "có đồng hồ không", "máy tính bảng"):
+  -> BẮT BUỘC trả về intent "search_products", giới thiệu các sản phẩm thuộc ĐÚNG ngành hàng đó và GÁN ĐẦY ĐỦ CÁC ID CỦA CÁC SẢN PHẨM THUỘC ĐÚNG DANH MỤC ĐÓ VÀO MẢNG "productIds" (Ví dụ hỏi điện thoại thì gán: ["apple-iphone-16-pro-max", "apple-iphone-16", "samsung-galaxy-s24-ultra", "samsung-galaxy-z-fold-6", "xiaomi-14-ultra"]). TUYỆT ĐỐI KHÔNG gán nhầm sang tai nghe hay máy tính bảng!
 
 2. QUẢN LÝ SẢN PHẨM YÊU THÍCH & GIỎ HÀNG:
 - Khi người dùng hỏi xem danh sách yêu thích ("Tôi có những sản phẩm yêu thích nào?", "Xem yêu thích", "Có sản phẩm yêu thích nào"):
@@ -1081,14 +1083,14 @@ BẮT BUỘC trả về một JSON object duy nhất, không bọc markdown \`\`
 const DEEPSEEK_MODEL =
   (process.env.EXPO_PUBLIC_DEEPSEEK_MODEL as string | undefined) ||
   (process.env.DEEPSEEK_MODEL as string | undefined) ||
-  'deepseek-reasoner';
+  'deepseek-chat';
 
 async function callDeepSeek(
   apiKey: string,
   messages: DeepSeekMessage[]
 ): Promise<ChatIntent> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const isReasoner = DEEPSEEK_MODEL.includes('reasoner');
@@ -1360,63 +1362,183 @@ async function resolveProduct(
   return null;
 }
 
+/**
+ * 1. Nhận diện và Khóa Danh mục Nghiêm ngặt (Strict Category Gating)
+ * Ngăn chặn tuyệt đối việc người dùng hỏi Điện thoại mà hiển thị nhầm Tai nghe hay Máy tính bảng.
+ */
+function detectCategoryGate(query: string, reply?: string): string | null {
+  const qNorm = normalizeVietnamese(query);
+  const rNorm = normalizeVietnamese(reply || '');
+
+  // Ưu tiên số 1: Trực tiếp từ câu hỏi người dùng
+  if (/(dien thoai|smartphone|di dong|phone|iphone|galaxy s|z fold|xiaomi 14|flagship|may gap)\b/i.test(qNorm)) {
+    return 'Điện thoại';
+  }
+  if (/(tai nghe|headphone|earphone|airpods|galaxy buds|wf 1000|wh 1000|loa bluetooth|am thanh)\b/i.test(qNorm)) {
+    return 'Âm thanh';
+  }
+  if (/(laptop|may tinh xach tay|macbook|vivobook|rog strix|ideapad|redmibook|xps 13)\b/i.test(qNorm)) {
+    return 'Laptop & Máy tính';
+  }
+  if (/(may tinh bang|tablet|ipad|galaxy tab|pad 6)\b/i.test(qNorm)) {
+    return 'Máy tính bảng';
+  }
+  if (/(dong ho|smartwatch|smart band|watch series|galaxy watch)\b/i.test(qNorm)) {
+    return 'Đồng hồ thông minh';
+  }
+  if (/(chuot|ban phim|keyboard|mouse|mx master|mx mechanical|gear|phu kien)\b/i.test(qNorm)) {
+    return 'Phụ kiện & Gear';
+  }
+
+  // Ưu tiên số 2: Từ câu trả lời của AI
+  if (/(dan dien thoai|flagship den may gap|dien thoai tu|iphone 16|galaxy s24 ultra|galaxy z fold)\b/i.test(rNorm)) {
+    return 'Điện thoại';
+  }
+  if (/(tai nghe|airpods|chong on chu dong|buds 3)\b/i.test(rNorm)) {
+    return 'Âm thanh';
+  }
+  if (/(laptop|macbook air|macbook pro|ideapad|vivobook)\b/i.test(rNorm)) {
+    return 'Laptop & Máy tính';
+  }
+  if (/(may tinh bang|ipad pro|tab s9|pad 6)\b/i.test(rNorm)) {
+    return 'Máy tính bảng';
+  }
+  if (/(dong ho|smartwatch|smart band 8|apple watch)\b/i.test(rNorm)) {
+    return 'Đồng hồ thông minh';
+  }
+  if (/(chuot|ban phim|mx master|mechanical)\b/i.test(rNorm)) {
+    return 'Phụ kiện & Gear';
+  }
+
+  return null;
+}
+
+/**
+ * 2. Thuật toán Cosine Similarity đa trường (Name 3.5, Category 3.0, Description 1.0)
+ */
+function tokenizeWords(text: string): string[] {
+  return normalizeVietnamese(text)
+    .split(/\s+/)
+    .filter((w) => w.length >= 2);
+}
+
+function computeCosineSimilarity(vecA: Map<string, number>, vecB: Map<string, number>): number {
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (const [term, valA] of vecA.entries()) {
+    normA += valA * valA;
+    const valB = vecB.get(term) || 0;
+    if (valB > 0) dot += valA * valB;
+  }
+  for (const valB of vecB.values()) {
+    normB += valB * valB;
+  }
+
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+/**
+ * 3. Xếp hạng và trích xuất TopK = 5 sản phẩm thông minh nhất với Cosine Similarity
+ */
+function rankProductsWithCosineSimilarity(
+  allProducts: ChatProduct[],
+  query: string,
+  reply: string,
+  aiProductIds?: string[],
+  explicitCategory?: string | null,
+  topK = 5
+): ChatProduct[] {
+  if (allProducts.length === 0) return [];
+
+  // Xác định Category Gate bắt buộc
+  const categoryGate = explicitCategory || detectCategoryGate(query, reply);
+
+  // Lọc tập ứng viên (Candidate Pool)
+  let candidatePool = allProducts;
+  if (categoryGate) {
+    const gated = allProducts.filter((p) => p.category === categoryGate);
+    if (gated.length > 0) {
+      candidatePool = gated;
+    }
+  }
+
+  // Xây dựng Query Vector (kết hợp câu hỏi người dùng trọng số x3.0 và câu trả lời AI trọng số x1.0)
+  const qTokens = tokenizeWords(query);
+  const rTokens = tokenizeWords(reply);
+
+  const queryVector = new Map<string, number>();
+  for (const t of qTokens) {
+    queryVector.set(t, (queryVector.get(t) || 0) + 3.0);
+  }
+  for (const t of rTokens) {
+    queryVector.set(t, (queryVector.get(t) || 0) + 1.0);
+  }
+
+  const aiIdSet = new Set((aiProductIds || []).map((id) => id.toLowerCase()));
+  const replyNorm = normalizeVietnamese(reply);
+
+  // Tính điểm Cosine Similarity cho từng sản phẩm trong tập ứng viên
+  const scored = candidatePool.map((p) => {
+    const docVector = new Map<string, number>();
+    for (const t of tokenizeWords(p.name)) {
+      docVector.set(t, (docVector.get(t) || 0) + 3.5); // Tên sản phẩm trọng số 3.5
+    }
+    for (const t of tokenizeWords(p.category || '')) {
+      docVector.set(t, (docVector.get(t) || 0) + 3.0); // Danh mục trọng số 3.0
+    }
+    for (const t of tokenizeWords(p.description || '')) {
+      docVector.set(t, (docVector.get(t) || 0) + 1.0); // Mô tả trọng số 1.0
+    }
+
+    let score = computeCosineSimilarity(queryVector, docVector);
+
+    // Điểm thưởng nếu AI chỉ định chính xác ID của sản phẩm này
+    if (aiIdSet.has(p.id.toLowerCase())) {
+      score += 0.6;
+    }
+
+    // Điểm thưởng nếu toàn bộ tên sản phẩm xuất hiện trong câu trả lời AI
+    const pNameNorm = normalizeVietnamese(p.name);
+    if (replyNorm.includes(pNameNorm)) {
+      score += 0.5;
+    } else {
+      // Hoặc 3 token tên xuất hiện liên tiếp (ví dụ "iphone 16 pro")
+      const tokens = pNameNorm.split(/\s+/).filter((w) => w.length > 2);
+      if (tokens.length >= 3) {
+        const trigram = `${tokens[0]} ${tokens[1]} ${tokens[2]}`;
+        if (replyNorm.includes(trigram)) {
+          score += 0.3;
+        }
+      }
+    }
+
+    return { product: p, score };
+  });
+
+  // Sắp xếp theo độ liên quan giảm dần và lấy TopK (5 sản phẩm)
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, topK).map((item) => item.product);
+}
+
 async function handleSearchProducts(
   intent: ChatIntent,
   runtime: ChatBotRuntime
 ): Promise<ChatBotResponse> {
   const all = await runtime.catalog.getAllProducts();
 
-  // 1. Extract products explicitly mentioned in the AI's reply text
-  if (intent.reply) {
-    const replyNorm = normalizeVietnamese(intent.reply);
-    const mentionedInReply = all.filter((p) => {
-      const pNameNorm = normalizeVietnamese(p.name);
-      if (replyNorm.includes(pNameNorm)) return true;
-      const tokens = pNameNorm.split(/\s+/).filter((w) => w.length > 2);
-      if (tokens.length >= 2) {
-        for (let i = 0; i < tokens.length - 1; i++) {
-          if (replyNorm.includes(`${tokens[i]} ${tokens[i + 1]}`)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    });
+  const userQuery = intent.productQuery?.query || intent.productName || '';
+  const replyText = intent.reply || '';
 
-    if (mentionedInReply.length > 0) {
-      return {
-        intent: 'search_products',
-        reply: intent.reply,
-        products: mentionedInReply.slice(0, 5),
-      };
-    }
-  }
-
-  // 2. If DeepSeek returned specific product IDs, prioritize them
-  if (intent.productIds && intent.productIds.length > 0) {
-    let matched = all.filter((p) => intent.productIds!.includes(p.id));
-    if (intent.productQuery?.maxPrice != null) {
-      matched = matched.filter((p) => p.price <= intent.productQuery!.maxPrice!);
-    }
-    if (intent.productQuery?.minPrice != null) {
-      matched = matched.filter((p) => p.price >= intent.productQuery!.minPrice!);
-    }
-    if (matched.length > 0) {
-      return {
-        intent: 'search_products',
-        reply: intent.reply,
-        products: matched,
-      };
-    }
-  }
-
-  // 3. Check if user is asking for best-sellers / popular (strictly avoid matching "top" in "laptop")
-  const qStr = normalizeVietnamese(intent.productQuery?.query || intent.productName || '');
+  // 1. Kiểm tra nếu người dùng hỏi sản phẩm bán chạy / hàng hot
+  const qStr = normalizeVietnamese(userQuery);
   const isSpecificCat = /(laptop|dien thoai|tai nghe|dong ho|may tinh|ipad|macbook|tablet|asus|acer|dell|hp|lenovo|xiaomi|samsung|apple|sony)/i.test(qStr);
   const isPopularQuery = !isSpecificCat && (
     /\b(ban chay|bán chạy|hang hot|hàng hot|hot nhat|hot nhất|bestseller|best seller)\b/i.test(qStr) ||
-    (/\btop\b/i.test(qStr) && !/(laptop|desktop)/i.test(qStr)) ||
-    (intent.reply && /(sản phẩm bán chạy nhất|mặt hàng bán chạy|top sản phẩm bán chạy)/i.test(intent.reply) && !intent.productQuery?.query && (!intent.productIds || intent.productIds.length === 0))
+    (/\btop\b/i.test(qStr) && !/(laptop|desktop)/i.test(qStr))
   );
 
   if (isPopularQuery) {
@@ -1435,55 +1557,29 @@ async function handleSearchProducts(
     }
   }
 
-  const params = intent.productQuery ?? {
-    query: intent.productName,
-    limit: 5,
-  };
-  let products = await runtime.catalog.searchProducts(params);
+  // 2. Sử dụng thuật toán Cosine Similarity + Category Gate (TopK = 5)
+  const rankedProducts = rankProductsWithCosineSimilarity(
+    all,
+    userQuery,
+    replyText,
+    intent.productIds,
+    intent.productQuery?.category ?? null,
+    5
+  );
 
-  if (products.length === 0) {
-    if (params.category) {
-      const byCat = await runtime.catalog.searchProducts({
-        category: params.category,
-        minPrice: params.minPrice,
-        maxPrice: params.maxPrice,
-        limit: params.limit ?? 5,
-      });
-      if (byCat.length > 0) {
-        products = byCat;
-      }
-    } else if (params.query) {
-      const byQuery = await runtime.catalog.searchProducts({
-        query: params.query,
-        minPrice: params.minPrice,
-        maxPrice: params.maxPrice,
-        limit: params.limit ?? 5,
-      });
-      if (byQuery.length > 0) {
-        products = byQuery;
-      }
-    }
-  }
-
-  if (products.length === 0) {
-    const isAffirmativeReply =
-      intent.reply &&
-      /(tìm được|đây là|gửi bạn|phù hợp|dưới đây)/i.test(intent.reply);
+  if (rankedProducts.length > 0) {
     return {
       intent: 'search_products',
-      reply: isAffirmativeReply
-        ? 'Rất tiếc hiện tại cửa hàng chưa có sản phẩm nào khớp hoàn toàn với tiêu chí này của bạn. Bạn thử điều chỉnh khoảng giá hoặc xem thêm các sản phẩm khác nhé!'
-        : (intent.reply ||
-          'Hiện tại cửa hàng chưa có sản phẩm nào phù hợp với yêu cầu của bạn. Bạn thử mô tả hoặc tìm danh mục khác nhé!'),
-      quickActions: getInitialQuickActions(runtime),
+      reply: intent.reply || `Dưới đây là ${rankedProducts.length} sản phẩm phù hợp nhất tại cửa hàng dành cho bạn:`,
+      products: rankedProducts,
     };
   }
 
+  // Fallback an toàn
   return {
     intent: 'search_products',
-    reply:
-      intent.reply || `Mình tìm thấy ${products.length} sản phẩm phù hợp. Bạn tham khảo nhé!`,
-    products,
+    reply: intent.reply || 'Hiện tại cửa hàng chưa có sản phẩm nào phù hợp với yêu cầu của bạn. Bạn thử tìm kiếm danh mục khác nhé!',
+    quickActions: getInitialQuickActions(runtime),
   };
 }
 
