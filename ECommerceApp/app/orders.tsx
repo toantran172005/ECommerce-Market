@@ -6,6 +6,7 @@ import {
   Image,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -28,14 +29,14 @@ import { Order, OrderItem, OrderStatus } from '../src/types';
 
 /* ------------------------------- Types ------------------------------- */
 
-type TabKey = 'all' | 'processing' | 'delivered' | 'cancelled';
+type TabKey = 'all' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 /* ------------------------------- Config ------------------------------ */
 
 const STATUS_META: Record<OrderStatus, { label: string; color: string; bg: string }> = {
   pending: { label: 'Đang chờ xử lý', color: colors.primary, bg: colors.primarySoft },
   processing: { label: 'Đang xử lý', color: colors.primary, bg: colors.primarySoft },
-  shipped: { label: 'Đang giao', color: colors.info, bg: colors.infoSoft },
+  shipped: { label: 'Đang vận chuyển', color: colors.info, bg: colors.infoSoft },
   delivered: { label: 'Đã giao thành công', color: colors.success, bg: colors.successSoft },
   cancelled: { label: 'Đã huỷ', color: colors.gray, bg: colors.border },
 };
@@ -43,6 +44,7 @@ const STATUS_META: Record<OrderStatus, { label: string; color: string; bg: strin
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'all', label: 'Tất cả' },
   { key: 'processing', label: 'Đang xử lý' },
+  { key: 'shipped', label: 'Đang vận chuyển' },
   { key: 'delivered', label: 'Đã giao' },
   { key: 'cancelled', label: 'Đã huỷ' },
 ];
@@ -55,6 +57,10 @@ const EMPTY_COPY: Record<TabKey, { title: string; text: string }> = {
   processing: {
     title: 'Không có đơn đang xử lý',
     text: 'Tất cả đơn hàng của bạn đã được xử lý xong rồi đó.',
+  },
+  shipped: {
+    title: 'Không có đơn đang vận chuyển',
+    text: 'Các đơn hàng đang trên đường giao sẽ xuất hiện tại đây.',
   },
   delivered: {
     title: 'Chưa có đơn đã giao',
@@ -110,6 +116,9 @@ export default function MyOrdersScreen() {
     if (activeTab === 'all') return orders;
     if (activeTab === 'processing') {
       return orders.filter((order) => order.status === 'pending' || order.status === 'processing');
+    }
+    if (activeTab === 'shipped') {
+      return orders.filter((order) => order.status === 'shipped');
     }
     return orders.filter((order) => order.status === activeTab);
   }, [orders, activeTab]);
@@ -435,28 +444,34 @@ export default function MyOrdersScreen() {
       />
 
       {/* Bộ lọc trạng thái */}
-      <View style={styles.tabsRow}>
-        {TABS.map((tab) => {
-          const isActive = tab.key === activeTab;
-          return (
-            <Pressable
-              key={tab.key}
-              onPress={() => setActiveTab(tab.key)}
-              style={({ pressed }) => [
-                styles.tab,
-                isActive && styles.tabActive,
-                pressed && !isActive && styles.tabPressed,
-              ]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isActive }}
-              accessibilityLabel={tab.label}
-            >
-              <Text numberOfLines={1} style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-                {tab.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View style={styles.tabsWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsRow}
+        >
+          {TABS.map((tab) => {
+            const isActive = tab.key === activeTab;
+            return (
+              <Pressable
+                key={tab.key}
+                onPress={() => setActiveTab(tab.key)}
+                style={({ pressed }) => [
+                  styles.tab,
+                  isActive && styles.tabActive,
+                  pressed && !isActive && styles.tabPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={tab.label}
+              >
+                <Text numberOfLines={1} style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
 
       <FlatList
@@ -519,15 +534,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  tabsWrapper: {
+    marginBottom: spacing.md,
+  },
   tabsRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.lg,
     gap: spacing.xs,
-    marginBottom: spacing.lg,
+    alignItems: 'center',
   },
   tab: {
-    flex: 1,
-    height: 44,
+    paddingHorizontal: 16,
+    height: 40,
     borderRadius: radius.md,
     backgroundColor: colors.card,
     borderWidth: 1,

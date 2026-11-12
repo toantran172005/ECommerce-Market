@@ -13,6 +13,7 @@ import {
   Modal,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -20,7 +21,7 @@ import {
   View,
   type ListRenderItemInfo,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
@@ -122,6 +123,7 @@ function toUiMessage(response: ChatBotResponse): ChatUiMessage {
 
 export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const auth = useAuth();
   const cart = useCart();
   const favourites = useFavourites();
@@ -516,6 +518,13 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
     ? 'Khách vãng lai · Trực tuyến'
     : `${runtime.user.displayName || runtime.user.email || 'Khách hàng'} · Trực tuyến`;
 
+  const topInset = Platform.OS === 'ios'
+    ? Math.max(insets.top, 48)
+    : Math.max(insets.top, StatusBar.currentHeight || 0);
+  const bottomInset = Platform.OS === 'ios'
+    ? Math.max(insets.bottom, 16)
+    : insets.bottom;
+
   return (
     <Modal
       visible={visible}
@@ -523,35 +532,38 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
       transparent={false}
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safeArea}>
+      <View style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" />
+
+        {/* Header với paddingTop tự động đẩy dưới Dynamic Island / Tai thỏ / Status Bar */}
+        <View style={[styles.header, { paddingTop: topInset + 8 }]}>
+          <View style={styles.headerInfo}>
+            <View style={styles.avatarWrap}>
+              <Ionicons name="sparkles" size={18} color={BRAND.white} />
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>Trợ Lý AI</Text>
+              <Text style={styles.headerSubtitle} numberOfLines={1}>
+                {userStatusText}
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeButton}
+            accessibilityLabel="Đóng khung chat"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="close" size={24} color={BRAND.text} />
+          </TouchableOpacity>
+        </View>
+
         <KeyboardAvoidingView
           style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerInfo}>
-              <View style={styles.avatarWrap}>
-                <Ionicons name="sparkles" size={18} color={BRAND.white} />
-              </View>
-              <View>
-                <Text style={styles.headerTitle}>Trợ Lý AI</Text>
-                <Text style={styles.headerSubtitle} numberOfLines={1}>
-                  {userStatusText}
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.closeButton}
-              accessibilityLabel="Đóng khung chat"
-            >
-              <Ionicons name="close" size={24} color={BRAND.text} />
-            </TouchableOpacity>
-          </View>
-
           {/* Messages List */}
           <FlatList
             ref={flatListRef}
@@ -576,7 +588,7 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
           )}
 
           {/* Input Bar */}
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, { paddingBottom: Math.max(bottomInset, 12) }]}>
             <TextInput
               style={styles.input}
               placeholder="Hỏi sản phẩm, thêm giỏ, đặt hàng..."
@@ -600,7 +612,7 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 }
