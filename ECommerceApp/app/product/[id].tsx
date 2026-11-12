@@ -69,9 +69,22 @@ export default function ProductDetailScreen() {
 
   const gallery = useMemo(() => {
     if (!product) return [];
-    const images = product.images?.filter(Boolean) ?? [];
-    if (images.length > 0) return images;
-    return [product.imageUrl];
+    const list: string[] = [];
+    if (product.imageUrl) list.push(product.imageUrl);
+    if (Array.isArray(product.images)) {
+      list.push(...product.images.filter(Boolean));
+    }
+    // Bổ sung ảnh của các biến thể màu sắc vào gallery
+    if (Array.isArray(product.variants)) {
+      product.variants.forEach((v) => {
+        if (v.type === 'color' && v.imageUrl) {
+          list.push(v.imageUrl);
+        }
+      });
+    }
+    const unique = Array.from(new Set(list.filter(Boolean)));
+    if (unique.length > 0) return unique;
+    return [product.imageUrl || ''];
   }, [product]);
 
   const colorVariants = useMemo(
@@ -95,6 +108,23 @@ export default function ProductDetailScreen() {
   useEffect(() => {
     setActiveImage(0);
   }, [productId]);
+
+  const handleSelectColor = useCallback(
+    (variant: any) => {
+      setSelectedColorId(variant.id);
+      if (variant.imageUrl) {
+        const targetIndex = gallery.indexOf(variant.imageUrl);
+        if (targetIndex >= 0) {
+          setActiveImage(targetIndex);
+          scrollRef.current?.scrollTo({
+            x: targetIndex * CAROUSEL_WIDTH,
+            animated: true,
+          });
+        }
+      }
+    },
+    [gallery]
+  );
 
   useEffect(() => {
     if (colorVariants.length > 0) {
@@ -336,7 +366,7 @@ export default function ProductDetailScreen() {
                     key={variant.id}
                     label={variant.name}
                     selected={selectedColorId === variant.id}
-                    onPress={() => setSelectedColorId(variant.id)}
+                    onPress={() => handleSelectColor(variant)}
                   />
                 ))}
               </View>

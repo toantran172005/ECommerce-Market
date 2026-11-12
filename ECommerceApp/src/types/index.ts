@@ -13,6 +13,7 @@ export interface ProductVariant {
   name: string;
   type: 'color' | 'storage' | 'size';
   inStock: number;
+  imageUrl?: string;
 }
 
 export interface ProductDetailItem {
