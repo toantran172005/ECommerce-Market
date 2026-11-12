@@ -1440,6 +1440,29 @@ function computeCosineSimilarity(vecA: Map<string, number>, vecB: Map<string, nu
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+function matchCategory(p: ChatProduct, gate: string): boolean {
+  if (!gate) return true;
+  const gNorm = normalizeVietnamese(gate);
+  const pCatNorm = normalizeVietnamese(p.category || '');
+  const pIdNorm = normalizeVietnamese((p as any).categoryId || '');
+
+  const isPhone = (val: string) => /(dien thoai|phones?|smartphone|di dong)/i.test(val);
+  const isAudio = (val: string) => /(am thanh|audio|tai nghe|headphone|sound)/i.test(val);
+  const isLaptop = (val: string) => /(laptop|may tinh xach tay|computers?|macbook)/i.test(val);
+  const isTablet = (val: string) => /(may tinh bang|tablets?|ipad)/i.test(val);
+  const isWatch = (val: string) => /(dong ho|watches?|smartwatch|smart band)/i.test(val);
+  const isAcc = (val: string) => /(phu kien|accessories|gear|chuot|ban phim)/i.test(val);
+
+  if (isPhone(gNorm)) return isPhone(pCatNorm) || isPhone(pIdNorm);
+  if (isAudio(gNorm)) return isAudio(pCatNorm) || isAudio(pIdNorm);
+  if (isLaptop(gNorm)) return isLaptop(pCatNorm) || isLaptop(pIdNorm);
+  if (isTablet(gNorm)) return isTablet(pCatNorm) || isTablet(pIdNorm);
+  if (isWatch(gNorm)) return isWatch(pCatNorm) || isWatch(pIdNorm);
+  if (isAcc(gNorm)) return isAcc(pCatNorm) || isAcc(pIdNorm);
+
+  return pCatNorm === gNorm || pIdNorm === gNorm || pCatNorm.includes(gNorm) || gNorm.includes(pCatNorm);
+}
+
 /**
  * 3. Xếp hạng và trích xuất TopK = 5 sản phẩm thông minh nhất với Cosine Similarity
  */
@@ -1453,13 +1476,13 @@ function rankProductsWithCosineSimilarity(
 ): ChatProduct[] {
   if (allProducts.length === 0) return [];
 
-  // Xác định Category Gate bắt buộc
-  const categoryGate = explicitCategory || detectCategoryGate(query, reply);
+  // Xác định Category Gate bắt buộc (ưu tiên nhận diện từ câu hỏi người dùng / câu trả lời, sau đó đến category từ AI)
+  const categoryGate = detectCategoryGate(query, reply) || explicitCategory;
 
   // Lọc tập ứng viên (Candidate Pool)
   let candidatePool = allProducts;
   if (categoryGate) {
-    const gated = allProducts.filter((p) => p.category === categoryGate);
+    const gated = allProducts.filter((p) => matchCategory(p, categoryGate));
     if (gated.length > 0) {
       candidatePool = gated;
     }
@@ -1495,22 +1518,22 @@ function rankProductsWithCosineSimilarity(
 
     let score = computeCosineSimilarity(queryVector, docVector);
 
-    // Điểm thưởng nếu AI chỉ định chính xác ID của sản phẩm này
+    // Điểm thưởng cực cao nếu AI chỉ định chính xác ID của sản phẩm này
     if (aiIdSet.has(p.id.toLowerCase())) {
-      score += 0.6;
+      score += 2.0;
     }
 
     // Điểm thưởng nếu toàn bộ tên sản phẩm xuất hiện trong câu trả lời AI
     const pNameNorm = normalizeVietnamese(p.name);
     if (replyNorm.includes(pNameNorm)) {
-      score += 0.5;
+      score += 1.5;
     } else {
-      // Hoặc 3 token tên xuất hiện liên tiếp (ví dụ "iphone 16 pro")
+      // Hoặc 3 token tên xuất hiện liên tiếp (ví dụ "iphone 16 pro", "galaxy s24 ultra")
       const tokens = pNameNorm.split(/\s+/).filter((w) => w.length > 2);
       if (tokens.length >= 3) {
         const trigram = `${tokens[0]} ${tokens[1]} ${tokens[2]}`;
         if (replyNorm.includes(trigram)) {
-          score += 0.3;
+          score += 1.0;
         }
       }
     }
@@ -1526,11 +1549,12 @@ function rankProductsWithCosineSimilarity(
 
 async function handleSearchProducts(
   intent: ChatIntent,
-  runtime: ChatBotRuntime
+  runtime: ChatBotRuntime,
+  rawMessage?: string
 ): Promise<ChatBotResponse> {
   const all = await runtime.catalog.getAllProducts();
 
-  const userQuery = intent.productQuery?.query || intent.productName || '';
+  const userQuery = intent.productQuery?.query || rawMessage || intent.productName || '';
   const replyText = intent.reply || '';
 
   // 1. Kiểm tra nếu người dùng hỏi sản phẩm bán chạy / hàng hot
@@ -1858,7 +1882,8 @@ async function handleViewCart(
 
 async function handleIntent(
   intent: ChatIntent,
-  runtime: ChatBotRuntime
+  runtime: ChatBotRuntime,
+  rawMessage?: string
 ): Promise<ChatBotResponse> {
   if (runtime.user.isGuest && isRestrictedIntent(intent.intent)) {
     return guestResponse(intent.intent);
@@ -1866,7 +1891,7 @@ async function handleIntent(
 
   switch (intent.intent) {
     case 'search_products':
-      return handleSearchProducts(intent, runtime);
+      return handleSearchProducts(intent, runtime, rawMessage);
     case 'view_favourites':
       return handleViewFavourites(intent, runtime);
     case 'view_cart':
@@ -1908,7 +1933,7 @@ export async function processChatMessage({
     setTimeout(async () => {
       try {
         const fallback = fallbackIntent(message, runtime);
-        const res = await handleIntent(fallback, runtime);
+        const res = await handleIntent(fallback, runtime, message);
         resolve(res);
       } catch {
         resolve({
@@ -1921,7 +1946,7 @@ export async function processChatMessage({
 
   const workerPromise = (async () => {
     const intent = await requestIntent(message, history, runtime);
-    return handleIntent(intent, runtime);
+    return handleIntent(intent, runtime, message);
   })();
 
   return Promise.race([workerPromise, timeoutPromise]);
