@@ -200,7 +200,7 @@ const getEnvKey = (): string => {
   } catch {
     // ignore
   }
-  return 'sk-8e6d65aff0ae461fa0385ea32d1fd7c5';
+  return '';
 };
 
 const DEEPSEEK_API_KEY = getEnvKey();
