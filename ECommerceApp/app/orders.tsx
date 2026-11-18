@@ -27,11 +27,7 @@ import { useNotifications } from '../src/context/NotificationsContext';
 import { formatDate, formatMoney } from '../src/utils/format';
 import { Order, OrderItem, OrderStatus } from '../src/types';
 
-/* ------------------------------- Types ------------------------------- */
-
 type TabKey = 'all' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-
-/* ------------------------------- Config ------------------------------ */
 
 const STATUS_META: Record<OrderStatus, { label: string; color: string; bg: string }> = {
   pending: { label: 'Đang chờ xử lý', color: colors.primary, bg: colors.primarySoft },
@@ -72,8 +68,6 @@ const EMPTY_COPY: Record<TabKey, { title: string; text: string }> = {
   },
 };
 
-/* ------------------------------ Screen ------------------------------- */
-
 export default function MyOrdersScreen() {
   const router = useRouter();
   const { fromSuccess } = useLocalSearchParams<{ fromSuccess?: string }>();
@@ -107,7 +101,6 @@ export default function MyOrdersScreen() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
 
-  // State cho Modal đánh giá sản phẩm theo từng card Shopee
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const [reviewTargetItem, setReviewTargetItem] = useState<OrderItem | null>(null);
   const [reviewTargetOrderId, setReviewTargetOrderId] = useState<string>('');
@@ -123,7 +116,6 @@ export default function MyOrdersScreen() {
     return orders.filter((order) => order.status === activeTab);
   }, [orders, activeTab]);
 
-  // Tách từng sản phẩm trong các đơn hàng "Đã giao" thành từng card độc lập (Shopee style)
   const deliveredItems = useMemo(() => {
     const list: { order: Order; item: OrderItem; uniqueKey: string }[] = [];
     orders
@@ -221,7 +213,7 @@ export default function MyOrdersScreen() {
 
       return (
         <View style={styles.card}>
-          {/* Card header */}
+          {}
           <View style={styles.cardHeader}>
             <View style={styles.thumb}>
               {primaryImage ? (
@@ -249,7 +241,7 @@ export default function MyOrdersScreen() {
 
           <View style={styles.divider} />
 
-          {/* Danh sách sản phẩm trong đơn */}
+          {}
           <View style={styles.products}>
             {item.items.map((product) => (
               <View key={`${item.id}-${product.productId}`} style={styles.productRow}>
@@ -266,7 +258,7 @@ export default function MyOrdersScreen() {
 
           <View style={styles.divider} />
 
-          {/* Hành động theo trạng thái */}
+          {}
           <View style={styles.actionsRow}>
             {(item.status === 'pending' || item.status === 'processing') && (
               <>
@@ -324,7 +316,6 @@ export default function MyOrdersScreen() {
     [handleCancelOrder, handleTrackOrder, openOrderDetail],
   );
 
-  // Render từng sản phẩm tách biệt khi ở tab "Đã giao" (Shopee style)
   const renderDeliveredItem = useCallback(
     ({ item: entry }: { item: { order: Order; item: OrderItem; uniqueKey: string } }) => {
       const { order, item: prod } = entry;
@@ -332,7 +323,7 @@ export default function MyOrdersScreen() {
 
       return (
         <View style={styles.card}>
-          {/* Header Shopee style */}
+          {}
           <View style={styles.cardHeader}>
             <View style={styles.headerInfo}>
               <Text style={styles.orderCode}>#{order.id}</Text>
@@ -345,7 +336,7 @@ export default function MyOrdersScreen() {
 
           <View style={styles.divider} />
 
-          {/* Chi tiết sản phẩm */}
+          {}
           <View style={styles.deliveredProdRow}>
             <Image source={{ uri: prod.imageUrl }} style={styles.deliveredThumb} resizeMode="contain" />
             <View style={styles.deliveredProdInfo}>
@@ -364,7 +355,7 @@ export default function MyOrdersScreen() {
 
           <View style={styles.divider} />
 
-          {/* Hàng hành động */}
+          {}
           <View style={styles.actionsRow}>
             {isReviewed ? (
               <View style={styles.reviewedGroup}>
@@ -412,7 +403,6 @@ export default function MyOrdersScreen() {
     );
   }, [activeTab, goShopping]);
 
-  // Trạng thái loading ban đầu
   if (loading && orders.length === 0) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -421,7 +411,6 @@ export default function MyOrdersScreen() {
     );
   }
 
-  // Lỗi khi chưa có dữ liệu
   if (error && orders.length === 0) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -443,7 +432,7 @@ export default function MyOrdersScreen() {
         onBack={handleBack}
       />
 
-      {/* Bộ lọc trạng thái */}
+      {}
       <View style={styles.tabsWrapper}>
         <ScrollView
           horizontal
@@ -495,7 +484,7 @@ export default function MyOrdersScreen() {
         }
       />
 
-      {/* Modal đánh giá sản phẩm */}
+      {}
       <ReviewModal
         visible={reviewModalVisible}
         onClose={() => setReviewModalVisible(false)}
@@ -505,7 +494,7 @@ export default function MyOrdersScreen() {
         onSuccess={handleReviewSuccess}
       />
 
-      {/* Xác nhận huỷ đơn */}
+      {}
       <ConfirmSheet
         visible={confirmVisible}
         title="Huỷ đơn hàng"
@@ -517,7 +506,7 @@ export default function MyOrdersScreen() {
         onCancel={() => setConfirmVisible(false)}
       />
 
-      {/* Thông báo nhẹ */}
+      {}
       <Toast
         message={toastMessage}
         visible={toastVisible}
@@ -526,8 +515,6 @@ export default function MyOrdersScreen() {
     </SafeAreaView>
   );
 }
-
-/* ------------------------------ Styles ------------------------------- */
 
 const styles = StyleSheet.create({
   safe: {

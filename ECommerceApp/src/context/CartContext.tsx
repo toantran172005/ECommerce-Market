@@ -59,7 +59,6 @@ export function CartProvider({
   const [selectedShippingId, setSelectedShippingId] = useState<string>(DEFAULT_SHIPPING_METHOD.id);
   const isLoadedRef = useRef(false);
 
-  // Load shipping methods from CatalogService
   useEffect(() => {
     let isMounted = true;
     CatalogService.getShippingMethods().then((methods) => {
@@ -70,7 +69,6 @@ export function CartProvider({
     return () => { isMounted = false; };
   }, []);
 
-  // Tải giỏ hàng từ Firestore khi user đăng nhập (chỉ cho user thật, khách thì luôn là rỗng)
   useEffect(() => {
     let active = true;
     isLoadedRef.current = false;
@@ -98,7 +96,6 @@ export function CartProvider({
     };
   }, [user?.uid, user?.isGuest, resetKey]);
 
-  // Tự động lưu giỏ hàng lên Firestore khi items thay đổi (chỉ cho user đã đăng nhập, không lưu cho guest)
   useEffect(() => {
     if (isLoadedRef.current && user?.uid && !user.isGuest) {
       void CartService.syncCart(user.uid, items);
@@ -113,18 +110,19 @@ export function CartProvider({
     if (!user || user.isGuest) {
       return;
     }
+    const safeQty = Math.max(1, Math.min(9999, Math.floor(quantity || 1)));
     const key = cartItemKey(product.id, variantId);
     setItems((prev) => {
       const existing = prev.find((i) => i.id === key);
       if (existing) {
         return prev.map((i) =>
-          i.id === key ? { ...i, quantity: Math.min(10, i.quantity + quantity), selected: true } : i,
+          i.id === key ? { ...i, quantity: Math.min(9999, i.quantity + safeQty), selected: true } : i,
         );
       }
       return [
         ...prev,
         {
-          ...toCartItem(product, quantity),
+          ...toCartItem(product, safeQty),
           id: key,
           variantId,
           variantName: variantId
@@ -153,8 +151,8 @@ export function CartProvider({
       prev
         .map((i) => {
           if (i.id !== itemId) return i;
-          const next = i.quantity + delta;
-          return next > 0 ? { ...i, quantity: Math.min(10, next) } : null;
+          const next = Math.min(9999, i.quantity + delta);
+          return next > 0 ? { ...i, quantity: next } : null;
         })
         .filter((i): i is CartItem => i !== null),
     );

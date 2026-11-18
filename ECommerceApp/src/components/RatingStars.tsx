@@ -8,7 +8,6 @@ interface RatingStarsProps {
   size?: number;
 }
 
-/** Hiển thị 5 sao theo rating, hỗ trợ nửa sao. */
 export function RatingStars({ rating, size = 14 }: RatingStarsProps) {
   const full = Math.floor(rating);
   const hasHalf = rating - full >= 0.4;

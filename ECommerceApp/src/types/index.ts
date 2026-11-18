@@ -1,13 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 
-/* ==================================================================== */
-/*  Các type nền tảng cho E-Commerce Marketplace.                       */
-/*  GIỮ NGUYÊN các export cũ, chỉ thêm field optional để tương thích.   */
-/* ==================================================================== */
 
 export type IoniconName = keyof typeof Ionicons.glyphMap;
 
-/** Biến thể sản phẩm (màu, dung lượng, kích thước). */
 export interface ProductVariant {
   id: string;
   name: string;
@@ -32,7 +27,6 @@ export interface Product {
   rating?: number;
   stock?: number;
 
-  /* --- Mở rộng (optional để tương thích code cũ) --- */
   images?: string[];
   reviewCount?: number;
   soldCount?: number;
@@ -44,7 +38,6 @@ export interface Product {
   variants?: ProductVariant[];
   createdAt?: string;
 
-  /* --- Shopee-Style Extended Specification & Description (mobile.docx B) --- */
   categoryPath?: string[];
   details?: ProductDetailItem[];
   highlights?: string[];
@@ -116,7 +109,6 @@ export interface Order {
   cancelledAt?: string | number;
   createdAt: number | string;
 
-  /* --- Mở rộng --- */
   subtotal?: number;
   shippingFee?: number;
   tax?: number;
@@ -161,7 +153,6 @@ export interface Category {
 export interface Brand {
   id: string;
   name: string;
-  /** Chữ viết tắt hiển thị thay logo. */
   shortName: string;
 }
 
@@ -173,11 +164,8 @@ export interface Voucher {
   title: string;
   description?: string;
   type: VoucherType;
-  /** % giảm hoặc số tiền giảm. */
   value: number;
-  /** Đơn tối thiểu để áp dụng. */
   minOrderValue: number;
-  /** Giới hạn tiền giảm tối đa cho loại %. */
   maxDiscount?: number;
   startsAt: string;
   expiresAt: string;
@@ -206,15 +194,11 @@ export interface PaymentMethod {
   id: string;
   type: PaymentMethodType;
   name: string;
-  /** Ví dụ "Visa •••• 4242". */
   detail: string;
   expiry?: string;
   isDefault: boolean;
-  /** Màu thương hiệu, ví dụ #D82D8B cho MoMo. */
   color?: string;
-  /** URL ảnh thẻ ngân hàng / ví. */
   image?: string;
-  /** Tên in trên thẻ (chủ thẻ) */
   holderName?: string;
 }
 
@@ -283,9 +267,7 @@ export interface ShippingMethod {
   type: ShippingMethodType;
   name: string;
   description: string;
-  /** Ví dụ "2 - 4 ngày". */
   estimatedDays: string;
   fee: number;
-  /** Miễn phí khi đơn trên giá trị này. */
   freeOver: number;
 }

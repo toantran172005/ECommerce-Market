@@ -203,7 +203,7 @@ export default function OrderDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Status + Timeline */}
+        {}
         <View style={styles.statusCard}>
           <View style={styles.statusTopRow}>
             <View style={styles.statusIconBox}>
@@ -273,7 +273,7 @@ export default function OrderDetailScreen() {
           </View>
         </View>
 
-        {/* Order items */}
+        {}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Sản phẩm ({itemCount})</Text>
         </View>
@@ -319,7 +319,7 @@ export default function OrderDetailScreen() {
           ))}
         </View>
 
-        {/* Thông tin giao hàng */}
+        {}
         <Text style={styles.sectionTitleStandalone}>Thông tin giao hàng</Text>
 
         <View style={styles.infoCard}>
@@ -365,7 +365,7 @@ export default function OrderDetailScreen() {
           </Pressable>
         </View>
 
-        {/* Tóm tắt thanh toán */}
+        {}
         <Text style={styles.sectionTitleStandalone}>Tóm tắt thanh toán</Text>
 
         <View style={styles.summaryCard}>
@@ -417,7 +417,7 @@ export default function OrderDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom actions */}
+      {}
       {order.status === 'cancelled' ? null : (
         <View style={styles.bottomBar}>
           {order.status === 'delivered' ? (
@@ -501,7 +501,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  /* Scroll */
   scroll: {
     flex: 1,
   },
@@ -510,7 +509,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
 
-  /* Status card */
   statusCard: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
@@ -567,7 +565,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 
-  /* Timeline */
   timeline: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -627,7 +624,6 @@ const styles = StyleSheet.create({
     color: colors.grayLight,
   },
 
-  /* Section titles */
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -655,7 +651,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
 
-  /* Items */
   itemsCard: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
@@ -724,7 +719,6 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
 
-  /* Info cards */
   infoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -775,7 +769,6 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 
-  /* Summary */
   summaryCard: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
@@ -824,7 +817,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
 
-  /* Note */
   noteWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -838,7 +830,6 @@ const styles = StyleSheet.create({
     color: colors.grayLight,
   },
 
-  /* Bottom bar */
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',

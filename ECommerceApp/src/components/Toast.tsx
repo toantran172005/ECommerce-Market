@@ -11,7 +11,6 @@ interface ToastProps {
   bottom?: number;
 }
 
-/** Toast nhỏ gọn (Animated, không cần thư viện ngoài), safe-area aware và không che thanh điều hướng hoặc nút hành động đáy. */
 export function Toast({ message, visible, onHide, duration = 2000, bottom = 120 }: ToastProps) {
   const opacity = useRef(new Animated.Value(0)).current;
 

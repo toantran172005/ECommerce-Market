@@ -233,7 +233,7 @@ export default function CheckoutScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ============ ĐỊA CHỈ GIAO HÀNG ============ */}
+        {}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
             <View style={styles.cardHeaderLeft}>
@@ -281,7 +281,7 @@ export default function CheckoutScreen() {
           )}
         </View>
 
-        {/* ============ PHƯƠNG THỨC GIAO HÀNG ============ */}
+        {}
         <View style={styles.card}>
           <View style={styles.cardHeaderLeft}>
             <View style={styles.iconBadge}>
@@ -327,7 +327,7 @@ export default function CheckoutScreen() {
           })}
         </View>
 
-        {/* ============ PHƯƠNG THỨC THANH TOÁN ============ */}
+        {}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
             <View style={styles.cardHeaderLeft}>
@@ -373,7 +373,7 @@ export default function CheckoutScreen() {
           )}
         </View>
 
-        {/* ============ MÃ GIẢM GIÁ / VOUCHER ============ */}
+        {}
         <View style={styles.card}>
           <View style={styles.cardHeaderLeft}>
             <View style={styles.iconBadge}>
@@ -441,7 +441,7 @@ export default function CheckoutScreen() {
           )}
         </View>
 
-        {/* ============ TÓM TẮT THANH TOÁN ============ */}
+        {}
         <View style={styles.card}>
           <View style={styles.cardHeaderLeft}>
             <View style={styles.iconBadge}>
@@ -485,7 +485,7 @@ export default function CheckoutScreen() {
         </View>
       </ScrollView>
 
-      {/* ============ THANH TOÁN ============ */}
+      {}
       <View style={styles.bottomBar}>
         {submitError ? (
           <Text style={styles.errorText} accessibilityLiveRegion="polite">
@@ -525,7 +525,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  /* ---------- Header ---------- */
   scroll: {
     flex: 1,
   },
@@ -534,7 +533,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
 
-  /* ---------- Card ---------- */
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
@@ -574,7 +572,6 @@ const styles = StyleSheet.create({
     color: colors.dark,
   },
 
-  /* ---------- Địa chỉ ---------- */
   changeButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -631,7 +628,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 
-  /* ---------- Option ---------- */
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -702,14 +698,12 @@ const styles = StyleSheet.create({
     color: colors.dark,
   },
 
-  /* ---------- Payment selected ---------- */
   paymentSelected: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: spacing.md,
   },
 
-  /* ---------- Tóm tắt ---------- */
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -748,7 +742,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  /* ---------- Bottom bar ---------- */
   bottomBar: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
@@ -792,7 +785,6 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
 
-  /* ---------- Voucher Card ---------- */
   voucherAppliedRow: {
     flexDirection: 'row',
     alignItems: 'center',

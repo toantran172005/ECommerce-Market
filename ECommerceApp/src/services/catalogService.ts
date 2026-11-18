@@ -17,6 +17,7 @@ import {
   ShippingMethod,
 } from '../types';
 import { apiError, mapFirebaseError } from './http';
+import { logger } from '../utils/logger';
 
 export interface Paged<T> {
   items: T[];
@@ -100,7 +101,6 @@ function matchesProductCategory(product: Product, targetCategory: string): boole
 
   if (pCatIdNorm === targetNorm || pCatNorm === targetNorm) return true;
 
-  // Stem comparison (e.g. "laptops" vs "laptop", "phones" vs "phone")
   const targetStem = targetNorm.replace(/s$/, '');
   const pCatStem = pCatNorm.replace(/s$/, '');
   const pCatIdStem = pCatIdNorm.replace(/s$/, '');
@@ -108,7 +108,6 @@ function matchesProductCategory(product: Product, targetCategory: string): boole
   if (pCatIdStem === targetStem || pCatStem === targetStem) return true;
   if (pCatNorm.includes(targetStem) || targetNorm.includes(pCatStem)) return true;
 
-  // Common semantic mappings
   if (targetStem === 'laptop') {
     if (pCatNorm.includes('may tinh bang') || pCatIdNorm.includes('tablet')) return false;
     if (pCatNorm.includes('laptop') || pCatIdNorm.includes('laptop') || pCatNorm.includes('may tinh')) {
@@ -149,11 +148,7 @@ export const CORE_STORE_CATEGORIES: Category[] = [
   { id: 'gaming', name: 'Gaming', icon: 'game-controller-outline' },
 ];
 
-/**
- * Service quản lý danh mục, thương hiệu, sản phẩm và đánh giá 100% từ Cloud Firestore.
- */
 export const CatalogService = {
-  /** Đồng bộ danh mục Firestore về 7 danh mục cốt lõi chuẩn */
   async syncCoreCategories(): Promise<void> {
     try {
       const snap = await getDocs(collection(db, 'categories'));
@@ -170,11 +165,10 @@ export const CatalogService = {
         });
       }
     } catch (err: unknown) {
-      console.warn('Sync core categories failed:', err);
+      logger.warn('Sync core categories failed:', err);
     }
   },
 
-  /** Lấy danh sách toàn bộ danh mục ngành hàng từ Firestore */
   async getCategories(): Promise<Category[]> {
     try {
       const snap = await getDocs(collection(db, 'categories'));
@@ -183,7 +177,6 @@ export const CatalogService = {
         return CORE_STORE_CATEGORIES;
       }
       const allCats = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Category, 'id'>) }));
-      // Sắp xếp ưu tiên theo thứ tự cốt lõi
       const orderMap = new Map(CORE_STORE_CATEGORIES.map((c, idx) => [c.id, idx]));
       return allCats.sort((a, b) => {
         const orderA = orderMap.has(a.id) ? orderMap.get(a.id)! : 99;
@@ -195,7 +188,6 @@ export const CatalogService = {
     }
   },
 
-  /** Lấy danh sách các thương hiệu từ Firestore */
   async getBrands(): Promise<Brand[]> {
     try {
       const snap = await getDocs(collection(db, 'brands'));
@@ -205,7 +197,6 @@ export const CatalogService = {
     }
   },
 
-  /** Lấy danh sách phương thức vận chuyển */
   async getShippingMethods(): Promise<ShippingMethod[]> {
     try {
       const snap = await getDocs(collection(db, 'shippingMethods'));
@@ -218,10 +209,6 @@ export const CatalogService = {
     }
   },
 
-  /**
-   * Truy vấn danh sách sản phẩm kết hợp đa tiêu chí từ Firestore:
-   * Tìm kiếm từ khoá, phân loại theo danh mục, thương hiệu, khoảng giá, rating, sắp xếp và phân trang.
-   */
   async getProducts(productQuery: ProductQuery = {}): Promise<Paged<Product>> {
     const page = productQuery.page ?? 1;
     const limitNum = productQuery.limit ?? 10;
@@ -242,43 +229,35 @@ export const CatalogService = {
       throw mapFirebaseError(err, 'Không thể tải sản phẩm từ Firestore.');
     }
 
-    // Lọc theo các tiêu chí (Client-side matching)
     let filtered = allProducts.filter((p) => {
-      // 1. Từ khoá tìm kiếm
       if (q) {
         const haystack = `${p.name} ${p.brandName ?? ''} ${(p.tags ?? []).join(' ')}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
 
-      // 2. Danh mục đơn lẻ
       if (productQuery.category && !matchesProductCategory(p, productQuery.category)) {
         return false;
       }
 
-      // 3. Nhiều danh mục
       if (productQuery.categories && productQuery.categories.length > 0) {
         const matchCat = productQuery.categories.some((cat) => matchesProductCategory(p, cat));
         if (!matchCat) return false;
       }
 
-      // 4. Thương hiệu
       if (productQuery.brands && productQuery.brands.length > 0) {
         const matchBrand = productQuery.brands.includes(p.brandId ?? '') ||
           productQuery.brands.includes(p.brandName ?? '');
         if (!matchBrand) return false;
       }
 
-      // 5. Khoảng giá
       if (productQuery.minPrice != null && p.price < productQuery.minPrice) return false;
       if (productQuery.maxPrice != null && p.price > productQuery.maxPrice) return false;
 
-      // 6. Điểm đánh giá sao
       if (productQuery.minRating != null && (p.rating ?? 0) < productQuery.minRating) return false;
 
       return true;
     });
 
-    // Sắp xếp
     switch (productQuery.sort ?? 'popular') {
       case 'priceAsc':
         filtered = [...filtered].sort((a, b) => a.price - b.price);
@@ -310,7 +289,6 @@ export const CatalogService = {
     };
   },
 
-  /** Lấy chi tiết một sản phẩm theo ID từ Firestore */
   async getProductById(id: string): Promise<Product> {
     try {
       const snap = await getDoc(doc(db, 'products', id));
@@ -319,7 +297,6 @@ export const CatalogService = {
         let rating = Number(raw.rating ?? 5.0);
         let reviewCount = Number(raw.reviewCount ?? 0);
 
-        // Nạp và tính toán lại đánh giá thật từ collection 'reviews'
         try {
           const rq = query(collection(db, 'reviews'), where('productId', '==', id));
           const rSnap = await getDocs(rq);
@@ -355,12 +332,10 @@ export const CatalogService = {
     }
   },
 
-  /** Lấy danh sách đánh giá của sản phẩm từ Firestore collection 'reviews' */
   async getProductReviews(productId: string): Promise<Review[]> {
     try {
       const reviewsMap = new Map<string, Review>();
 
-      // 1. Đọc từ root collection 'reviews'
       try {
         const reviewsQuery = query(collection(db, 'reviews'), where('productId', '==', productId));
         const reviewsSnap = await getDocs(reviewsQuery);
@@ -381,7 +356,6 @@ export const CatalogService = {
         });
       } catch {}
 
-      // 2. Fallback đọc subcollection 'reviews' nếu có
       try {
         const subSnap = await getDocs(collection(db, 'products', productId, 'reviews'));
         subSnap.docs.forEach((d) => {
@@ -410,7 +384,6 @@ export const CatalogService = {
     }
   },
 
-  /** Thêm đánh giá mới cho sản phẩm vào Firestore collection 'reviews' */
   async addProductReview(
     productId: string,
     review: Omit<Review, 'id' | 'productId'>,
@@ -431,7 +404,6 @@ export const CatalogService = {
     }
   },
 
-  /** Xoá một đánh giá khỏi sản phẩm */
   async deleteProductReview(productId: string, reviewId: string): Promise<void> {
     try {
       await deleteDoc(doc(db, 'reviews', reviewId));
@@ -440,7 +412,6 @@ export const CatalogService = {
     }
   },
 
-  /** Lấy danh sách thuộc tính sản phẩm từ root collection 'product_attributes' (ERD) */
   async getProductAttributes(productId: string): Promise<Array<{ id: string; productId: string; type: string; name: string; value: string }>> {
     try {
       const { query, where } = await import('firebase/firestore');

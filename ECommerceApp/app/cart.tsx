@@ -24,7 +24,6 @@ import { getErrorMessage } from '../src/services/http';
 import { formatMoney } from '../src/utils/format';
 import type { CartItem } from '../src/types';
 
-/** Màn hình giỏ hàng, dùng CartContext để đồng bộ toàn app. */
 export default function CartScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -63,7 +62,6 @@ export default function CartScreen() {
     }
   }, [isGuest, router]);
 
-  // Nếu chưa chọn sản phẩm nào thì không tính phí ship/thuế để tránh hiển thị sai.
   const displayTotals =
     selectedCount === 0
       ? { subtotal: 0, discount: 0, shippingFee: 0, tax: 0, total: 0 }
@@ -114,8 +112,21 @@ export default function CartScreen() {
       );
       return;
     }
+
+    const selectedItemsForCheckout = items.filter((i) => i.selected);
+    const outOfStockItem = selectedItemsForCheckout.find(
+      (i) => typeof i.product.stock === 'number' && i.quantity > i.product.stock,
+    );
+    if (outOfStockItem) {
+      Alert.alert(
+        'Không đủ hàng trong kho',
+        `Sản phẩm "${outOfStockItem.product.name}" hiện chỉ còn ${outOfStockItem.product.stock} cái trong kho, bạn đang chọn ${outOfStockItem.quantity} cái. Vui lòng giảm số lượng để tiếp tục đặt hàng.`,
+      );
+      return;
+    }
+
     router.push('/checkout');
-  }, [router, selectedCount, user]);
+  }, [items, router, selectedCount, user]);
 
   const renderItem = useCallback<ListRenderItem<CartItem>>(
     ({ item }) => {
@@ -201,19 +212,17 @@ export default function CartScreen() {
 
                   <Pressable
                     onPress={() => updateQuantity(itemId, 1)}
-                    disabled={item.quantity >= 10}
                     style={({ pressed }) => [
                       styles.stepperButton,
                       pressed && styles.pressed,
                     ]}
                     accessibilityRole="button"
                     accessibilityLabel="Tăng số lượng"
-                    accessibilityState={{ disabled: item.quantity >= 10 }}
                   >
                     <Ionicons
                       name="add"
                       size={16}
-                      color={item.quantity >= 10 ? colors.grayLight : colors.dark}
+                      color={colors.dark}
                     />
                   </Pressable>
                 </View>
@@ -428,9 +437,6 @@ export default function CartScreen() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Styles                                                             */
-/* ------------------------------------------------------------------ */
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
@@ -444,7 +450,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl + 20,
   },
 
-  /* Item trong giỏ */
   itemCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -573,7 +578,6 @@ const styles = StyleSheet.create({
     color: colors.dark,
   },
 
-  /* Khuyến mãi */
   promoSection: {
     marginTop: spacing.xl,
   },
@@ -648,7 +652,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  /* Tóm tắt tiền */
   summaryCard: {
     marginTop: spacing.xl,
     paddingHorizontal: spacing.xl,
@@ -693,7 +696,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
 
-  /* Thanh toán */
   footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

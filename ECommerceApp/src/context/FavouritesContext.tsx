@@ -27,7 +27,6 @@ export function FavouritesProvider({
   const { user } = useAuth();
   const [favourites, setFavourites] = useState<Product[]>([]);
 
-  // Tải danh sách yêu thích từ Firestore khi user đăng nhập
   useEffect(() => {
     let active = true;
     if (user?.uid) {

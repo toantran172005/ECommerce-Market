@@ -36,7 +36,7 @@ export default function TabLayout() {
         },
       }}
     >
-      {/* Ẩn index, chỉ dùng làm màn hình redirect */}
+      {}
       <Tabs.Screen name="index" options={{ href: null }} />
 
       <Tabs.Screen
@@ -73,7 +73,6 @@ export default function TabLayout() {
         options={{
           title: 'Yêu thích',
           tabBarBadge: !isGuest && favourites.length > 0 ? favourites.length : undefined,
-          // Badge màu primary, nổi bật trên nền trắng
           tabBarBadgeStyle: { backgroundColor: colors.primary, color: colors.white },
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
@@ -105,7 +104,6 @@ export default function TabLayout() {
         options={{
           title: 'Tài khoản',
           tabBarBadge: !isGuest && unreadCount > 0 ? unreadCount : undefined,
-          // Badge thông báo dùng màu danger
           tabBarBadgeStyle: { backgroundColor: colors.danger, color: colors.white },
           tabBarIcon: ({ color, focused }) => (
             <Ionicons

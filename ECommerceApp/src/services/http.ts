@@ -1,18 +1,14 @@
-/* Bộ xử lý lỗi và HTTP/Firebase chung */
 
 export const IS_MOCK_MODE = process.env.EXPO_PUBLIC_DATA_SOURCE === 'mock';
 
-/** Bật/tắt độ trễ giả khi chạy mock mode. */
 export const MOCK_LATENCY = IS_MOCK_MODE;
 
-/** Độ trễ giả lập (chỉ kích hoạt ở mock mode). */
 export function mockDelay(ms?: number): Promise<void> {
   if (!MOCK_LATENCY) return Promise.resolve();
   const delay = ms ?? (150 + Math.floor(Math.random() * 250));
   return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
-/** Lỗi chuẩn hoá trả về cho UI: { code, message }. */
 export class ApiError extends Error {
   code: string;
 
@@ -23,18 +19,15 @@ export class ApiError extends Error {
   }
 }
 
-/** Ném ApiError ngay trong async function -> Promise bị reject. */
 export function apiError(code: string, message: string): never {
   throw new ApiError(code, message);
 }
 
-/** Trả về data (kèm delay nếu mock). */
 export async function respond<T>(data: T): Promise<T> {
   if (MOCK_LATENCY) await mockDelay();
   return data;
 }
 
-/** Lấy message hiển thị tiếng Việt từ bất kỳ lỗi nào. */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message;
   if (error instanceof Error) return error.message;
@@ -42,9 +35,6 @@ export function getErrorMessage(error: unknown): string {
   return 'Đã có lỗi xảy ra, vui lòng thử lại.';
 }
 
-/**
- * Chuyển đổi mã lỗi Firebase sang ApiError với message tiếng Việt rõ ràng, thân thiện.
- */
 export function mapFirebaseError(error: unknown, fallbackMessage = 'Đã có lỗi xảy ra, vui lòng thử lại.'): ApiError {
   if (error instanceof ApiError) return error;
 
@@ -52,7 +42,6 @@ export function mapFirebaseError(error: unknown, fallbackMessage = 'Đã có l�
   const code = err?.code ?? 'UNKNOWN_ERROR';
 
   switch (code) {
-    // Auth errors
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
@@ -72,7 +61,6 @@ export function mapFirebaseError(error: unknown, fallbackMessage = 'Đã có l�
     case 'auth/network-request-failed':
       return new ApiError('NETWORK_ERROR', 'Không thể kết nối Internet. Vui lòng kiểm tra Wi-Fi/4G.');
 
-    // Firestore errors
     case 'permission-denied':
       return new ApiError('PERMISSION_DENIED', 'Bạn không có quyền thực hiện thao tác này.');
     case 'not-found':

@@ -11,7 +11,6 @@ interface ScreenHeaderProps {
   right?: ReactNode;
 }
 
-/** Header chuẩn cho màn con: nút back + tiêu đề + action phải (tuỳ chọn). */
 export function ScreenHeader({ title, subtitle, onBack, right }: ScreenHeaderProps) {
   const router = useRouter();
 

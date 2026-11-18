@@ -32,7 +32,6 @@ interface OptionChipProps {
   icon?: IoniconName;
 }
 
-/** Chip lọc touch target >= 44, style theo theme. */
 function OptionChip({ label, selected, onPress, icon }: OptionChipProps) {
   return (
     <Pressable
@@ -72,11 +71,9 @@ export default function FilterScreen() {
   const router = useRouter();
   const { filters, applyFilters } = useProductFilter();
 
-  // Danh mục + thương hiệu lấy từ mock service.
   const categoriesResponse = useAsync<Category[]>(() => CatalogService.getCategories(), []);
   const brandsResponse = useAsync<Brand[]>(() => CatalogService.getBrands(), []);
 
-  // Local state khởi tạo từ context để mở lại filter đúng bộ lọc hiện tại.
   const [draftCategoryIds, setDraftCategoryIds] = useState<string[]>(filters.categoryIds);
   const [draftBrandIds, setDraftBrandIds] = useState<string[]>(filters.brandIds);
   const [draftMinPrice, setDraftMinPrice] = useState(
@@ -87,13 +84,11 @@ export default function FilterScreen() {
   );
   const [draftMinRating, setDraftMinRating] = useState<number | null>(filters.minRating);
 
-  // Tránh bấm đúp nút áp dụng.
   const applyingRef = useRef(false);
 
   const debouncedMinPrice = useDebounce(draftMinPrice, 300);
   const debouncedMaxPrice = useDebounce(draftMaxPrice, 300);
 
-  // Đếm số sản phẩm theo bộ lọc đang draft.
   const countResponse = useAsync<Paged<Product>>(
     () =>
       CatalogService.getProducts({
@@ -182,7 +177,7 @@ export default function FilterScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.sheetContent}
         >
-          {/* Header */}
+          {}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Bộ lọc tìm kiếm</Text>
             <Pressable
@@ -200,7 +195,7 @@ export default function FilterScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Khoảng giá */}
+            {}
             <Text style={styles.sectionTitle}>Khoảng giá (₫)</Text>
             <View style={styles.priceRow}>
               <View style={styles.priceInputWrap}>
@@ -230,7 +225,7 @@ export default function FilterScreen() {
               </View>
             </View>
 
-            {/* Danh mục */}
+            {}
             <Text style={styles.sectionTitle}>Danh mục</Text>
             {categoriesResponse.loading ? (
               <ActivityIndicator color={colors.primary} style={styles.optionsLoading} />
@@ -247,7 +242,7 @@ export default function FilterScreen() {
               </View>
             )}
 
-            {/* Thương hiệu */}
+            {}
             <Text style={styles.sectionTitle}>Thương hiệu</Text>
             {brandsResponse.loading ? (
               <ActivityIndicator color={colors.primary} style={styles.optionsLoading} />
@@ -264,7 +259,7 @@ export default function FilterScreen() {
               </View>
             )}
 
-            {/* Đánh giá tối thiểu */}
+            {}
             <Text style={styles.sectionTitle}>Đánh giá tối thiểu</Text>
             <View style={styles.chipsContainer}>
               {RATING_OPTIONS.map((r) => (
@@ -279,7 +274,7 @@ export default function FilterScreen() {
             </View>
           </ScrollView>
 
-          {/* Footer nút bấm */}
+          {}
           <View style={styles.footer}>
             <SecondaryButton
               title="Thiết lập lại"

@@ -8,18 +8,9 @@ interface ProductDescriptionViewProps {
   product: Product;
 }
 
-/**
- * Component hiển thị "MÔ TẢ SẢN PHẨM" chuẩn phong cách Shopee (mobile.docx B).
- * Gồm:
- * 1. Điểm nổi bật (Highlights bullet points)
- * 2. Nội dung mô tả chi tiết có tính năng Xem thêm / Thu gọn
- * 3. Hướng dẫn sử dụng & bảo quản
- * 4. Khối Chính sách bảo hành & Đổi trả chính hãng
- */
 export function ProductDescriptionView({ product }: ProductDescriptionViewProps) {
   const [expanded, setExpanded] = useState(false);
 
-  // Điểm nổi bật mặc định nếu chưa có
   const highlights = product.highlights && product.highlights.length > 0
     ? product.highlights
     : [
@@ -29,7 +20,6 @@ export function ProductDescriptionView({ product }: ProductDescriptionViewProps)
         'Đạt tiêu chuẩn an toàn chất lượng quốc tế',
       ];
 
-  // Nội dung mô tả dài
   const fullText = product.longDescription || product.description || 'Chưa có thông tin mô tả chi tiết cho sản phẩm này.';
 
   const isLongContent = fullText.length > 250;
@@ -39,7 +29,7 @@ export function ProductDescriptionView({ product }: ProductDescriptionViewProps)
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {}
       <View style={styles.headerRow}>
         <View style={styles.iconBadge}>
           <Ionicons name="document-text" size={16} color={colors.primary} />
@@ -47,7 +37,7 @@ export function ProductDescriptionView({ product }: ProductDescriptionViewProps)
         <Text style={styles.headerTitle}>MÔ TẢ SẢN PHẨM</Text>
       </View>
 
-      {/* 1. Điểm nổi bật */}
+      {}
       <View style={styles.highlightsBox}>
         <Text style={styles.sectionSubtitle}>✨ ĐẶC ĐIỂM NỔI BẬT</Text>
         {highlights.map((item, idx) => (
@@ -58,7 +48,7 @@ export function ProductDescriptionView({ product }: ProductDescriptionViewProps)
         ))}
       </View>
 
-      {/* 2. Chi tiết mô tả */}
+      {}
       <View style={styles.descriptionBox}>
         <Text style={styles.sectionSubtitle}>📝 THÔNG TIN CHI TIẾT</Text>
         <Text style={styles.descriptionParagraph}>{displayedText}</Text>
@@ -80,7 +70,7 @@ export function ProductDescriptionView({ product }: ProductDescriptionViewProps)
         )}
       </View>
 
-      {/* 3. Hướng dẫn sử dụng & Bảo quản nếu có */}
+      {}
       {product.usageGuide ? (
         <View style={styles.guideBox}>
           <Text style={styles.sectionSubtitle}>💡 HƯỚNG DẪN SỬ DỤNG & BẢO QUẢN</Text>
@@ -88,7 +78,7 @@ export function ProductDescriptionView({ product }: ProductDescriptionViewProps)
         </View>
       ) : null}
 
-      {/* 4. Khối Chính sách bảo hành & Đổi trả */}
+      {}
       <View style={styles.warrantyCard}>
         <View style={styles.warrantyHeader}>
           <Ionicons name="shield-checkmark" size={18} color="#2563EB" />

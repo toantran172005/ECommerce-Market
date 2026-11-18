@@ -46,7 +46,7 @@ export function InvoiceModal({ visible, onClose, order }: InvoiceModalProps) {
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        {/* Header */}
+        {}
         <View style={styles.header}>
           <View style={styles.headerTitleRow}>
             <View style={styles.iconBadge}>
@@ -70,7 +70,7 @@ export function InvoiceModal({ visible, onClose, order }: InvoiceModalProps) {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {/* Card Hóa đơn */}
+          {}
           <View style={styles.invoicePaper}>
             <View style={styles.storeHeader}>
               <Text style={styles.storeName}>ECOMMERCE MARKET</Text>
@@ -80,7 +80,7 @@ export function InvoiceModal({ visible, onClose, order }: InvoiceModalProps) {
 
             <View style={styles.dividerDashed} />
 
-            {/* Thông tin đơn hàng & trạng thái */}
+            {}
             <View style={styles.metaRow}>
               <Text style={styles.metaLabel}>Mã đơn hàng:</Text>
               <Text style={styles.metaValue}>#{order.id}</Text>
@@ -100,7 +100,7 @@ export function InvoiceModal({ visible, onClose, order }: InvoiceModalProps) {
 
             <View style={styles.dividerDashed} />
 
-            {/* Thông tin người nhận */}
+            {}
             <Text style={styles.sectionHeading}>THÔNG TIN NGƯỜI NHẬN</Text>
             <Text style={styles.customerName}>{order.customerName}</Text>
             <Text style={styles.customerDetail}>Điện thoại: {formatPhone(order.phoneNumber)}</Text>
@@ -112,7 +112,7 @@ export function InvoiceModal({ visible, onClose, order }: InvoiceModalProps) {
 
             <View style={styles.dividerDashed} />
 
-            {/* Bảng sản phẩm */}
+            {}
             <Text style={styles.sectionHeading}>CHI TIẾT MẶT HÀNG</Text>
             <View style={styles.tableHeader}>
               <Text style={[styles.colProd, styles.tableHeaderTitle]}>Sản phẩm</Text>
@@ -139,7 +139,7 @@ export function InvoiceModal({ visible, onClose, order }: InvoiceModalProps) {
 
             <View style={styles.dividerDashed} />
 
-            {/* Bảng tổng kết chi phí */}
+            {}
             <View style={styles.calcRow}>
               <Text style={styles.calcLabel}>Tạm tính hàng hóa</Text>
               <Text style={styles.calcValue}>{formatMoney(subtotal)}</Text>
@@ -178,7 +178,7 @@ export function InvoiceModal({ visible, onClose, order }: InvoiceModalProps) {
             </View>
           </View>
 
-          {/* Nút hành động */}
+          {}
           <View style={styles.actions}>
             <PrimaryButton
               title="Tải / Lưu hóa đơn"

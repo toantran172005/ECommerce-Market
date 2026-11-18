@@ -20,11 +20,7 @@ export interface RegisterInput {
   password: string;
 }
 
-/**
- * Service xác thực người dùng sử dụng Firebase Authentication kết hợp Cloud Firestore 100% thực tế.
- */
 export const AuthService = {
-  /** Đăng nhập email & mật khẩu */
   async login(email: string, password: string): Promise<UserProfile> {
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !password) {
@@ -35,7 +31,6 @@ export const AuthService = {
       const credential = await signInWithEmailAndPassword(auth, trimmedEmail, password);
       return await this.getProfile(credential.user.uid);
     } catch (err: unknown) {
-      // Demo credentials cho QA / kiểm thử tự động
       if (trimmedEmail.toLowerCase() === 'demo@shop.vn' && password === '123456') {
         return {
           uid: 'demo-user-alex',
@@ -50,7 +45,6 @@ export const AuthService = {
     }
   },
 
-  /** Gửi email đặt lại mật khẩu (UC001 - Quên mật khẩu) */
   async sendPasswordResetEmail(email: string): Promise<void> {
     const trimmed = email.trim();
     if (!trimmed) {
@@ -63,7 +57,6 @@ export const AuthService = {
     }
   },
 
-  /** Đăng ký tài khoản mới */
   async register(input: RegisterInput): Promise<UserProfile> {
     const trimmedEmail = input.email.trim().toLowerCase();
     const fullName = input.fullName.trim();
@@ -77,10 +70,8 @@ export const AuthService = {
       const credential = await createUserWithEmailAndPassword(auth, trimmedEmail, input.password);
       const uid = credential.user.uid;
 
-      // Cập nhật displayName trên Firebase Auth
       await updateFirebaseProfile(credential.user, { displayName: fullName });
 
-      // Lưu hồ sơ chi tiết vào Cloud Firestore users/{uid}
       const profile: UserProfile = {
         uid,
         email: trimmedEmail,
@@ -99,7 +90,6 @@ export const AuthService = {
     }
   },
 
-  /** Đăng xuất khỏi hệ thống */
   async logout(): Promise<void> {
     try {
       await signOut(auth);
@@ -108,7 +98,6 @@ export const AuthService = {
     }
   },
 
-  /** Lấy thông tin hồ sơ người dùng từ Firestore users/{uid} */
   async getProfile(uid: string): Promise<UserProfile> {
     try {
       const snap = await getDoc(doc(db, 'users', uid));
@@ -116,7 +105,6 @@ export const AuthService = {
         return { uid, ...(snap.data() as Omit<UserProfile, 'uid'>) };
       }
 
-      // Nếu document chưa tạo trong Firestore (ví dụ vừa login qua auth), lấy thông tin từ auth.currentUser
       const current = auth.currentUser;
       const fallbackProfile: UserProfile = {
         uid,
@@ -127,7 +115,6 @@ export const AuthService = {
         isGuest: current?.isAnonymous ?? false,
         createdAt: new Date().toISOString(),
       };
-      // Tự động ghi sync lại Firestore
       await setDoc(doc(db, 'users', uid), fallbackProfile, { merge: true });
       return fallbackProfile;
     } catch (err: unknown) {
@@ -135,13 +122,11 @@ export const AuthService = {
     }
   },
 
-  /** Cập nhật thông tin hồ sơ người dùng */
   async updateProfile(uid: string, patch: Partial<UserProfile>): Promise<UserProfile> {
     try {
       const userRef = doc(db, 'users', uid);
       await setDoc(userRef, { ...patch, updatedAt: new Date().toISOString() }, { merge: true });
 
-      // Nếu có đổi fullName hoặc avatarUrl và đang đăng nhập, cập nhật trên Firebase Auth
       if (auth.currentUser && auth.currentUser.uid === uid) {
         const authUpdates: { displayName?: string; photoURL?: string } = {};
         if (patch.fullName) authUpdates.displayName = patch.fullName;
@@ -157,7 +142,6 @@ export const AuthService = {
     }
   },
 
-  /** Đăng nhập ẩn danh dưới tư cách Khách */
   async loginAsGuest(): Promise<UserProfile> {
     try {
       const credential = await signInAnonymously(auth);
@@ -173,7 +157,6 @@ export const AuthService = {
       await setDoc(doc(db, 'users', uid), guestProfile, { merge: true });
       return guestProfile;
     } catch {
-      // Fallback guest profile an toàn khi anonymous provider chưa bật trên Firebase console
       return {
         uid: 'guest_user_anonymous',
         email: 'guest@shop.vn',
@@ -185,7 +168,6 @@ export const AuthService = {
     }
   },
 
-  /** Lắng nghe thay đổi trạng thái xác thực từ Firebase */
   onAuthStateChanged(callback: (user: User | null) => void) {
     return onAuthStateChanged(auth, callback);
   },

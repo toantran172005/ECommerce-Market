@@ -27,7 +27,6 @@ import { FormField } from '../src/components/FormField';
 import { Toast } from '../src/components/Toast';
 import type { Faq } from '../src/types';
 
-// Kích hoạt LayoutAnimation trên Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -37,7 +36,6 @@ export default function HelpCenterScreen() {
   const { user } = useAuth();
   const userId = user?.uid ?? 'guest';
 
-  // Lấy danh sách FAQ từ SupportService
   const {
     data: faqs,
     loading: faqsLoading,
@@ -48,7 +46,6 @@ export default function HelpCenterScreen() {
   const [query, setQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Modal gửi yêu cầu hỗ trợ
   const [modalVisible, setModalVisible] = useState(false);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -56,11 +53,9 @@ export default function HelpCenterScreen() {
   const [messageError, setMessageError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Toast
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Danh sách FAQ lọc theo từ khoá
   const filteredFaqs = useMemo(() => {
     const source = faqs ?? [];
     const q = query.trim().toLowerCase();
@@ -72,7 +67,6 @@ export default function HelpCenterScreen() {
     );
   }, [faqs, query]);
 
-  // Mở rộng câu hỏi đầu tiên khi lần đầu tải xong
   useEffect(() => {
     if (faqs && faqs.length > 0 && expandedId === null) {
       setExpandedId(faqs[0].id);
@@ -152,7 +146,6 @@ export default function HelpCenterScreen() {
       setModalVisible(false);
       setToastMessage('Đã gửi yêu cầu hỗ trợ thành công!');
       setToastVisible(true);
-      // Reset form
       setSubject('');
       setMessage('');
     } catch (error) {
@@ -172,7 +165,7 @@ export default function HelpCenterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
@@ -193,7 +186,7 @@ export default function HelpCenterScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Thanh tìm kiếm */}
+        {}
         <View style={styles.searchBar}>
           <Ionicons name="search" size={19} color={colors.placeholder} />
           <TextInput
@@ -219,7 +212,7 @@ export default function HelpCenterScreen() {
           )}
         </View>
 
-        {/* Kênh hỗ trợ nhanh */}
+        {}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Kênh hỗ trợ nhanh</Text>
           <View style={styles.sectionBadge}>
@@ -282,7 +275,7 @@ export default function HelpCenterScreen() {
           <Ionicons name="chevron-forward" size={18} color={colors.grayLight} />
         </Pressable>
 
-        {/* FAQ */}
+        {}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Câu hỏi thường gặp</Text>
           <Text style={styles.sectionCount}>{filteredFaqs.length} câu hỏi</Text>
@@ -362,7 +355,7 @@ export default function HelpCenterScreen() {
         </View>
       </ScrollView>
 
-      {/* Nút liên hệ */}
+      {}
       <View style={styles.footer}>
         <Pressable
           onPress={openContactModal}
@@ -378,7 +371,7 @@ export default function HelpCenterScreen() {
         </Text>
       </View>
 
-      {/* Modal gửi yêu cầu hỗ trợ */}
+      {}
       <Modal
         visible={modalVisible}
         animationType="fade"
@@ -466,7 +459,7 @@ export default function HelpCenterScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Toast thông báo thành công */}
+      {}
       <Toast
         message={toastMessage}
         visible={toastVisible}

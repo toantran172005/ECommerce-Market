@@ -77,10 +77,6 @@ function mapReview(id: string, data: DocumentData): Review {
   };
 }
 
-/**
- * Tính toán lại điểm trung bình rating và reviewCount thật từ collection 'reviews'
- * và cập nhật document product tương ứng trong Firestore.
- */
 export async function recalculateProductRating(
   productId: string
 ): Promise<{ rating: number; reviewCount: number }> {
@@ -116,12 +112,6 @@ export async function recalculateProductRating(
   }
 }
 
-/**
- * Gửi đánh giá (review) cho một sản phẩm trong đơn hàng:
- * 1. Lưu duy nhất vào root collection 'reviews' (không có content, không có verifiedPurchase).
- * 2. Cập nhật order.reviewedItemIds trong Firestore.
- * 3. Tính toán lại rating chuẩn cho sản phẩm.
- */
 export async function submitReview(input: SubmitReviewInput): Promise<Review> {
   const {
     productId,
@@ -171,12 +161,10 @@ export async function submitReview(input: SubmitReviewInput): Promise<Review> {
       throw new Error('Sản phẩm không tồn tại trong đơn hàng này.');
     }
 
-    // 1 khách chỉ được đánh giá 1 lần cho mỗi sản phẩm trong đơn hàng
     if (orderData.reviewedItemIds?.includes(productId)) {
       throw new Error('Sản phẩm này trong đơn hàng đã được bạn đánh giá trước đó.');
     }
 
-    // Ghi trực tiếp và duy nhất vào collection 'reviews'
     transaction.set(reviewRef, {
       id: reviewRef.id,
       productId,
@@ -196,7 +184,6 @@ export async function submitReview(input: SubmitReviewInput): Promise<Review> {
     });
   });
 
-  // Cập nhật rating sản phẩm dựa trên data thật
   try {
     await recalculateProductRating(productId);
   } catch {}
@@ -206,9 +193,6 @@ export async function submitReview(input: SubmitReviewInput): Promise<Review> {
 
 export const submitRating = submitReview;
 
-/**
- * Lấy đánh giá của một sản phẩm trong một đơn hàng cụ thể từ collection 'reviews'
- */
 export async function getReviewByOrderAndProduct(
   orderId: string,
   productId: string
@@ -233,9 +217,6 @@ export async function getReviewByOrderAndProduct(
 
 export const getRatingByOrderAndProduct = getReviewByOrderAndProduct;
 
-/**
- * Lấy tất cả các đánh giá thật của một sản phẩm từ collection 'reviews'
- */
 export async function getProductReviews(productId: string): Promise<Review[]> {
   try {
     const reviewsQuery = query(

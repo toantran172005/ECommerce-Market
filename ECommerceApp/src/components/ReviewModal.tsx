@@ -144,7 +144,7 @@ export function ReviewModal({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        {/* Header */}
+        {}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Đánh giá sản phẩm</Text>
           <Pressable
@@ -164,7 +164,7 @@ export function ReviewModal({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Chọn sản phẩm nếu có nhiều hơn 1 sản phẩm */}
+          {}
           {!item && items.length > 1 ? (
             <View style={styles.selectorWrap}>
               <Text style={styles.fieldLabel}>Chọn sản phẩm muốn đánh giá:</Text>
@@ -194,7 +194,7 @@ export function ReviewModal({
             </View>
           ) : null}
 
-          {/* Thông tin sản phẩm được chọn */}
+          {}
           {currentItem ? (
             <View style={styles.productBanner}>
               <Image source={{ uri: currentItem.imageUrl }} style={styles.bannerThumb} />
@@ -215,7 +215,7 @@ export function ReviewModal({
             </View>
           ) : null}
 
-          {/* Chọn sao */}
+          {}
           <View style={styles.ratingSection}>
             <Text style={styles.ratingTitle}>Chất lượng sản phẩm</Text>
             <View style={styles.starsRow}>
@@ -243,7 +243,7 @@ export function ReviewModal({
             </Text>
           </View>
 
-          {/* Nhập nhận xét */}
+          {}
           <View style={styles.inputSection}>
             <Text style={styles.fieldLabel}>Chia sẻ trải nghiệm của bạn</Text>
             <TextInput
@@ -258,7 +258,7 @@ export function ReviewModal({
             />
           </View>
 
-          {/* Đính kèm hình ảnh */}
+          {}
           <View style={styles.photoSection}>
             <Text style={styles.fieldLabel}>Hình ảnh thực tế ({photos.length}/3)</Text>
             <View style={styles.photoRow}>
@@ -287,7 +287,7 @@ export function ReviewModal({
             </View>
           </View>
 
-          {/* Nút gửi */}
+          {}
           <View style={styles.actionSection}>
             <PrimaryButton
               title={isCurrentReviewed ? "Đã đánh giá" : "Gửi đánh giá"}

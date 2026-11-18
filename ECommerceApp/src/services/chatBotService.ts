@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NotificationService } from './notificationService';
+import { logger } from '../utils/logger';
 
 export type ChatIntentName =
   | 'search_products'
@@ -198,7 +198,6 @@ const getEnvKey = (): string => {
       (process.env.DEEPSEEK_API_KEY as string | undefined);
     if (envVal && envVal.trim()) return envVal.trim();
   } catch {
-    // ignore
   }
   return '';
 };
@@ -477,7 +476,6 @@ function createCartMethods(cartSource: unknown): {
       try {
         await Promise.resolve(removeMethod(productId));
       } catch {
-        // ignore
       }
     },
   };
@@ -613,7 +611,6 @@ function filterProducts(
     : [];
 
   return products.filter((product) => {
-    // 1. Price check
     if (params.minPrice !== undefined && product.price < params.minPrice) {
       return false;
     }
@@ -626,7 +623,6 @@ function filterProducts(
     const prodDesc = normalizeVietnamese(product.description ?? '');
     const haystack = `${prodName} ${prodCategory} ${prodDesc}`;
 
-    // 2. Category check
     if (categoryParam) {
       const catMatch =
         prodCategory.includes(categoryParam) ||
@@ -637,7 +633,6 @@ function filterProducts(
       }
     }
 
-    // 3. Query check
     if (rawQuery) {
       if (haystack.includes(rawQuery)) return true;
 
@@ -684,7 +679,6 @@ function createCatalogMethods(catalogSource: unknown): {
       const prods = normalizeProducts(raw);
       if (prods.length > 0) return prods;
     } catch {
-      // ignore
     }
     try {
       const raw = await Promise.resolve(searchMethod());
@@ -707,7 +701,6 @@ function createCatalogMethods(catalogSource: unknown): {
         const prod = normalizeProduct(raw);
         if (prod) return prod;
       } catch {
-        // ignore
       }
     }
     const all = await getAllProducts();
@@ -981,7 +974,6 @@ async function buildSystemPrompt(runtime: ChatBotRuntime): Promise<string> {
   try {
     catalogProducts = await runtime.catalog.getAllProducts();
   } catch {
-    // ignore
   }
 
   const catalogSummary = catalogProducts
@@ -1238,7 +1230,6 @@ function fallbackIntent(message: string, runtime: ChatBotRuntime): ChatIntent {
     reply = 'Xin lỗi bạn, mình chưa thể xử lý yêu cầu này hoặc thông tin chưa rõ ràng. Bạn có thể miêu tả chi tiết hơn hoặc hỏi mình về sản phẩm, giỏ hàng nhé!';
   }
 
-  // Detect matching product in favourites or catalog
   let matchedProductId: string | undefined;
   let matchedProductName: string | undefined;
 
@@ -1294,7 +1285,7 @@ async function requestIntent(
 
       return await callDeepSeek(apiKey, messages);
     } catch (error) {
-      console.warn('Call DeepSeek API failed, fallback to local logic:', error);
+      logger.warn('Call DeepSeek API failed, fallback to local logic:', error);
     }
   }
 
@@ -1329,7 +1320,6 @@ async function resolveProduct(
     if (byId) return byId;
   }
 
-  // Check in favourites first if removing or manipulating favourites
   if (intent.intent === 'remove_from_favourites') {
     const favs = runtime.favourites.getProducts();
     if (intent.productName) {
@@ -1362,15 +1352,10 @@ async function resolveProduct(
   return null;
 }
 
-/**
- * 1. Nhận diện và Khóa Danh mục Nghiêm ngặt (Strict Category Gating)
- * Ngăn chặn tuyệt đối việc người dùng hỏi Điện thoại mà hiển thị nhầm Tai nghe hay Máy tính bảng.
- */
 function detectCategoryGate(query: string, reply?: string): string | null {
   const qNorm = normalizeVietnamese(query);
   const rNorm = normalizeVietnamese(reply || '');
 
-  // Ưu tiên số 1: Trực tiếp từ câu hỏi người dùng
   if (/(dien thoai|smartphone|di dong|phone|iphone|galaxy s|z fold|xiaomi 14|flagship|may gap)\b/i.test(qNorm)) {
     return 'Điện thoại';
   }
@@ -1390,7 +1375,6 @@ function detectCategoryGate(query: string, reply?: string): string | null {
     return 'Phụ kiện & Gear';
   }
 
-  // Ưu tiên số 2: Từ câu trả lời của AI
   if (/(dan dien thoai|flagship den may gap|dien thoai tu|iphone 16|galaxy s24 ultra|galaxy z fold)\b/i.test(rNorm)) {
     return 'Điện thoại';
   }
@@ -1413,9 +1397,6 @@ function detectCategoryGate(query: string, reply?: string): string | null {
   return null;
 }
 
-/**
- * 2. Thuật toán Cosine Similarity đa trường (Name 3.5, Category 3.0, Description 1.0)
- */
 function tokenizeWords(text: string): string[] {
   return normalizeVietnamese(text)
     .split(/\s+/)
@@ -1463,9 +1444,6 @@ function matchCategory(p: ChatProduct, gate: string): boolean {
   return pCatNorm === gNorm || pIdNorm === gNorm || pCatNorm.includes(gNorm) || gNorm.includes(pCatNorm);
 }
 
-/**
- * 3. Xếp hạng và trích xuất TopK = 5 sản phẩm thông minh nhất với Cosine Similarity
- */
 function rankProductsWithCosineSimilarity(
   allProducts: ChatProduct[],
   query: string,
@@ -1476,10 +1454,8 @@ function rankProductsWithCosineSimilarity(
 ): ChatProduct[] {
   if (allProducts.length === 0) return [];
 
-  // Xác định Category Gate bắt buộc (ưu tiên nhận diện từ câu hỏi người dùng / câu trả lời, sau đó đến category từ AI)
   const categoryGate = detectCategoryGate(query, reply) || explicitCategory;
 
-  // Lọc tập ứng viên (Candidate Pool)
   let candidatePool = allProducts;
   if (categoryGate) {
     const gated = allProducts.filter((p) => matchCategory(p, categoryGate));
@@ -1488,7 +1464,6 @@ function rankProductsWithCosineSimilarity(
     }
   }
 
-  // Xây dựng Query Vector (kết hợp câu hỏi người dùng trọng số x3.0 và câu trả lời AI trọng số x1.0)
   const qTokens = tokenizeWords(query);
   const rTokens = tokenizeWords(reply);
 
@@ -1503,32 +1478,28 @@ function rankProductsWithCosineSimilarity(
   const aiIdSet = new Set((aiProductIds || []).map((id) => id.toLowerCase()));
   const replyNorm = normalizeVietnamese(reply);
 
-  // Tính điểm Cosine Similarity cho từng sản phẩm trong tập ứng viên
   const scored = candidatePool.map((p) => {
     const docVector = new Map<string, number>();
     for (const t of tokenizeWords(p.name)) {
-      docVector.set(t, (docVector.get(t) || 0) + 3.5); // Tên sản phẩm trọng số 3.5
+      docVector.set(t, (docVector.get(t) || 0) + 3.5); 
     }
     for (const t of tokenizeWords(p.category || '')) {
-      docVector.set(t, (docVector.get(t) || 0) + 3.0); // Danh mục trọng số 3.0
+      docVector.set(t, (docVector.get(t) || 0) + 3.0); 
     }
     for (const t of tokenizeWords(p.description || '')) {
-      docVector.set(t, (docVector.get(t) || 0) + 1.0); // Mô tả trọng số 1.0
+      docVector.set(t, (docVector.get(t) || 0) + 1.0); 
     }
 
     let score = computeCosineSimilarity(queryVector, docVector);
 
-    // Điểm thưởng cực cao nếu AI chỉ định chính xác ID của sản phẩm này
     if (aiIdSet.has(p.id.toLowerCase())) {
       score += 2.0;
     }
 
-    // Điểm thưởng nếu toàn bộ tên sản phẩm xuất hiện trong câu trả lời AI
     const pNameNorm = normalizeVietnamese(p.name);
     if (replyNorm.includes(pNameNorm)) {
       score += 1.5;
     } else {
-      // Hoặc 3 token tên xuất hiện liên tiếp (ví dụ "iphone 16 pro", "galaxy s24 ultra")
       const tokens = pNameNorm.split(/\s+/).filter((w) => w.length > 2);
       if (tokens.length >= 3) {
         const trigram = `${tokens[0]} ${tokens[1]} ${tokens[2]}`;
@@ -1541,7 +1512,6 @@ function rankProductsWithCosineSimilarity(
     return { product: p, score };
   });
 
-  // Sắp xếp theo độ liên quan giảm dần và lấy TopK (5 sản phẩm)
   scored.sort((a, b) => b.score - a.score);
 
   return scored.slice(0, topK).map((item) => item.product);
@@ -1557,7 +1527,6 @@ async function handleSearchProducts(
   const userQuery = intent.productQuery?.query || rawMessage || intent.productName || '';
   const replyText = intent.reply || '';
 
-  // 1. Kiểm tra nếu người dùng hỏi sản phẩm bán chạy / hàng hot
   const qStr = normalizeVietnamese(userQuery);
   const isSpecificCat = /(laptop|dien thoai|tai nghe|dong ho|may tinh|ipad|macbook|tablet|asus|acer|dell|hp|lenovo|xiaomi|samsung|apple|sony)/i.test(qStr);
   const isPopularQuery = !isSpecificCat && (
@@ -1581,7 +1550,6 @@ async function handleSearchProducts(
     }
   }
 
-  // 2. Sử dụng thuật toán Cosine Similarity + Category Gate (TopK = 5)
   const rankedProducts = rankProductsWithCosineSimilarity(
     all,
     userQuery,
@@ -1599,7 +1567,6 @@ async function handleSearchProducts(
     };
   }
 
-  // Fallback an toàn
   return {
     intent: 'search_products',
     reply: intent.reply || 'Hiện tại cửa hàng chưa có sản phẩm nào phù hợp với yêu cầu của bạn. Bạn thử tìm kiếm danh mục khác nhé!',
@@ -2071,7 +2038,6 @@ export async function createOrderFromDraft(
   const result = await runtime.orders.createOrder(draft);
   const orderCode = (result.code && result.code !== 'unknown') ? result.code : result.orderId;
 
-  // Gửi thông báo đặt hàng thành công
   try {
     const notifPayload = {
       type: 'order' as const,
@@ -2086,7 +2052,7 @@ export async function createOrderFromDraft(
       await NotificationService.createNotification(notifPayload, runtime.user.userId);
     }
   } catch (err) {
-    console.warn('Gửi thông báo đặt hàng thất bại:', err);
+    logger.warn('Gửi thông báo đặt hàng thất bại:', err);
   }
 
   return {

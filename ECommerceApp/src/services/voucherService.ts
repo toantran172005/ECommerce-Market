@@ -4,11 +4,7 @@ import { Voucher } from '../types';
 import { apiError, mapFirebaseError } from './http';
 import { computeVoucherDiscount } from '../utils/pricing';
 
-/**
- * Service quản lý và kiểm tra mã giảm giá (Vouchers) 100% từ Cloud Firestore.
- */
 export const VoucherService = {
-  /** Lấy danh sách toàn bộ mã giảm giá khả dụng từ collection 'promos' trong Firestore */
   async listVouchers(): Promise<Voucher[]> {
     try {
       const snap = await getDocs(collection(db, 'promos'));
@@ -20,10 +16,6 @@ export const VoucherService = {
     }
   },
 
-  /**
-   * Xác thực và tính toán giá trị chiết khấu của voucher:
-   * Kiểm tra tồn tại, kích hoạt, hạn dùng, lượt dùng, giá trị đơn hàng tối thiểu và danh mục áp dụng.
-   */
   async validateVoucher(
     code: string,
     subtotal: number,
@@ -50,12 +42,10 @@ export const VoucherService = {
       apiError('VOUCHER_NOT_FOUND', `Mã giảm giá "${normalized}" không hợp lệ hoặc không tồn tại.`);
     }
 
-    // 1. Kiểm tra trạng thái kích hoạt (chỉ báo lỗi nếu có cờ isActive: false)
     if (voucher.isActive === false) {
       apiError('VOUCHER_EXPIRED', `Mã giảm giá "${normalized}" đã hết hạn sử dụng.`);
     }
 
-    // 2. Kiểm tra hạn dùng
     if (voucher.expiresAt) {
       const expiry = new Date(voucher.expiresAt).getTime();
       if (!isNaN(expiry) && expiry < Date.now()) {
@@ -63,12 +53,10 @@ export const VoucherService = {
       }
     }
 
-    // 3. Kiểm tra số lần sử dụng tối đa
     if (voucher.usageLimit > 0 && voucher.usedCount >= voucher.usageLimit) {
       apiError('VOUCHER_OUT_OF_USAGE', `Mã giảm giá "${normalized}" đã được sử dụng hết lượt.`);
     }
 
-    // 4. Kiểm tra giá trị đơn hàng tối thiểu
     const minOrder = voucher.minOrderValue ?? 100000;
     if (subtotal < minOrder) {
       apiError(
@@ -77,7 +65,6 @@ export const VoucherService = {
       );
     }
 
-    // 5. Kiểm tra danh mục áp dụng
     if (voucher.applicableCategories && voucher.applicableCategories.length > 0) {
       if (cartCategoryIds && cartCategoryIds.length > 0) {
         const matched = cartCategoryIds.some((catId) =>

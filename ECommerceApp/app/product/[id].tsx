@@ -38,7 +38,7 @@ import { CatalogService } from '../../src/services/catalogService';
 import { formatMoney, calcDiscountPercent } from '../../src/utils/format';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const H_PADDING = spacing.xl; // 20
+const H_PADDING = spacing.xl; 
 const CAROUSEL_WIDTH = SCREEN_WIDTH - H_PADDING * 2;
 const CAROUSEL_HEIGHT = 340;
 
@@ -74,7 +74,6 @@ export default function ProductDetailScreen() {
     if (Array.isArray(product.images)) {
       list.push(...product.images.filter(Boolean));
     }
-    // Bổ sung ảnh của các biến thể màu sắc vào gallery
     if (Array.isArray(product.variants)) {
       product.variants.forEach((v) => {
         if (v.type === 'color' && v.imageUrl) {
@@ -166,7 +165,6 @@ export default function ProductDetailScreen() {
         message: `${product.name} - ${formatMoney(product.price)}`,
       });
     } catch {
-      // Người dùng huỷ chia sẻ hoặc không có ứng dụng nhận.
     }
   }, [product]);
 
@@ -281,7 +279,7 @@ export default function ProductDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Carousel ảnh */}
+        {}
         <View style={styles.carouselWrapper}>
           <ScrollView
             ref={scrollRef}
@@ -307,7 +305,7 @@ export default function ProductDetailScreen() {
           </ScrollView>
         </View>
 
-        {/* Chấm phân trang */}
+        {}
         <View style={styles.dotsRow}>
           {gallery.map((uri, index) => (
             <View
@@ -317,7 +315,7 @@ export default function ProductDetailScreen() {
           ))}
         </View>
 
-        {/* Thông tin sản phẩm */}
+        {}
         <View style={styles.infoContainer}>
           <Text style={styles.brand}>{product.brandName ?? product.category ?? ''}</Text>
           <Text style={styles.productName}>{product.name}</Text>
@@ -356,7 +354,7 @@ export default function ProductDetailScreen() {
 
           <Text style={styles.description}>{product.description}</Text>
 
-          {/* Màu sắc */}
+          {}
           {colorVariants.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Màu sắc</Text>
@@ -373,7 +371,7 @@ export default function ProductDetailScreen() {
             </View>
           )}
 
-          {/* Phiên bản */}
+          {}
           {otherVariants.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Phiên bản</Text>
@@ -389,13 +387,13 @@ export default function ProductDetailScreen() {
               </View>
             </View>
           )}
-          {/* CHI TIẾT SẢN PHẨM (Shopee style - mobile.docx B) */}
+          {}
           <ProductSpecsTable product={product} />
 
-          {/* MÔ TẢ SẢN PHẨM (Shopee style - mobile.docx B) */}
+          {}
           <ProductDescriptionView product={product} />
 
-          {/* ĐÁNH GIÁ SẢN PHẨM (UC010) */}
+          {}
           <ProductReviewsList
             reviews={reviews ?? []}
             rating={product.rating ?? 4.8}

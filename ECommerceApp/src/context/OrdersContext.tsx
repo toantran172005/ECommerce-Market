@@ -64,7 +64,6 @@ export function OrdersProvider({
 
   const transitionInFlightRef = useRef<Set<string>>(new Set());
 
-  // Tự động chuyển trạng thái đơn hàng mỗi 5s
   useEffect(() => {
     if (!user?.uid) return;
 
@@ -136,7 +135,6 @@ export function OrdersProvider({
           addItem(product, item.quantity);
         }
       } catch {
-        // Skip unavailable items
       }
     }
   }, [addItem]);

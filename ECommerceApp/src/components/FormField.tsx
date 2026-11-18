@@ -24,7 +24,6 @@ interface FormFieldProps {
   multiline?: boolean;
 }
 
-/** TextInput có nhãn + icon + thông báo lỗi. */
 export function FormField({
   label,
   value,

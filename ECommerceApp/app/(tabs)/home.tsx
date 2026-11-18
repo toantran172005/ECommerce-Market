@@ -31,8 +31,8 @@ import { ErrorView } from '../../src/components/ErrorView';
 import { EmptyState } from '../../src/components/EmptyState';
 
 const { width } = Dimensions.get('window');
-const H_PADDING = spacing.xl; // 20
-const CARD_GAP = spacing.md;   // 12
+const H_PADDING = spacing.xl; 
+const CARD_GAP = spacing.md;   
 const CARD_WIDTH = (width - H_PADDING * 2 - CARD_GAP) / 2;
 
 interface HomeProductCardProps {
@@ -279,7 +279,6 @@ export default function HomeScreen() {
       if (cats.length > 0) setHomeCategories(cats);
       await refresh();
     } catch {
-      // ignore
     } finally {
       setRefreshing(false);
     }
@@ -335,7 +334,7 @@ export default function HomeScreen() {
 
   const header = (
     <View>
-      {/* Header */}
+      {}
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.greeting}>{greeting}</Text>
@@ -395,7 +394,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Search + Filter */}
+      {}
       <View style={styles.searchRow}>
         <View style={styles.searchBox}>
           <Ionicons name="search-outline" size={20} color={colors.placeholder} />
@@ -419,7 +418,7 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {/* Categories */}
+      {}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Danh mục sản phẩm</Text>
       </View>
@@ -457,7 +456,7 @@ export default function HomeScreen() {
         })}
       </ScrollView>
 
-      {/* Products header */}
+      {}
       <View style={styles.productsHeader}>
         <Text style={styles.sectionTitle}>Sản phẩm</Text>
         <View style={styles.productsHeaderRight}>

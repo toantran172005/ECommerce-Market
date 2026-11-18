@@ -30,9 +30,6 @@ import { PaymentMethod, PaymentMethodType } from '../src/types';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
-/* -------------------------------------------------------------------------- */
-/*                          Brand metas & helpers                              */
-/* -------------------------------------------------------------------------- */
 
 type PaymentBrandKey = 'momo' | 'vietcombank' | 'bidv' | 'vietinbank' | 'agribank' | 'cod';
 
@@ -130,9 +127,6 @@ function getCardNumber(method: PaymentMethod | null): string {
   return last4 ? `•••• •••• •••• ${last4}` : method.detail;
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                  Screen                                    */
-/* -------------------------------------------------------------------------- */
 
 export default function PaymentMethodScreen() {
   const router = useRouter();
@@ -291,7 +285,7 @@ export default function PaymentMethodScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Card preview */}
+          {}
           {selectedMethod?.type === 'cod' ? (
             <View style={[styles.cardMockup, styles.cardMockupCod]}>
               <View style={styles.cardOverlay} />
@@ -469,7 +463,7 @@ export default function PaymentMethodScreen() {
         onCancel={() => setMethodToDelete(null)}
       />
 
-      {/* Modal thêm mới */}
+      {}
       <Modal
         visible={showAddModal}
         animationType="slide"
@@ -583,7 +577,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
 
-  /* Card preview */
   cardMockup: {
     borderRadius: radius.xl,
     paddingHorizontal: spacing.xl,
@@ -849,7 +842,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  /* Modal */
   modalBackdrop: {
     flex: 1,
     backgroundColor: colors.overlay,

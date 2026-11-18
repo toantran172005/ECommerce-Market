@@ -9,11 +9,7 @@ import {
 import { auth, db } from '../firebaseConfig';
 import { PopularSearch, SearchHistoryItem } from '../types';
 
-/**
- * Service quản lý từ khoá phổ biến và lịch sử tìm kiếm người dùng 100% từ Cloud Firestore.
- */
 export const SearchService = {
-  /** Lấy danh sách từ khoá tìm kiếm phổ biến */
   async getPopularSearches(): Promise<PopularSearch[]> {
     try {
       const snap = await getDocs(collection(db, 'popularSearches'));
@@ -38,7 +34,6 @@ export const SearchService = {
     }
   },
 
-  /** Lấy lịch sử tìm kiếm gần đây của người dùng (tối đa 10 mục) */
   async getSearchHistory(userId?: string): Promise<SearchHistoryItem[]> {
     const uid = userId || auth.currentUser?.uid;
     if (!uid) return [];
@@ -58,10 +53,6 @@ export const SearchService = {
     }
   },
 
-  /**
-   * Lưu từ khoá tìm kiếm mới vào Firestore:
-   * Chống trùng lặp (đưa từ khoá trùng lên đầu), giới hạn tối đa 10 mục gần nhất.
-   */
   async saveSearch(keyword: string, userId?: string): Promise<SearchHistoryItem[]> {
     const trimmed = keyword.trim();
     if (!trimmed) return await this.getSearchHistory(userId);
@@ -96,7 +87,6 @@ export const SearchService = {
     }
   },
 
-  /** Xoá toàn bộ lịch sử tìm kiếm */
   async clearSearchHistory(userId?: string): Promise<SearchHistoryItem[]> {
     const uid = userId || auth.currentUser?.uid;
     if (!uid) return [];

@@ -8,29 +8,20 @@ interface ProductSpecsTableProps {
   product: Product;
 }
 
-/**
- * Component hiển thị bảng "CHI TIẾT SẢN PHẨM" chuẩn phong cách Shopee (mobile.docx B).
- * Bao gồm: Breadcrumb danh mục, Tình trạng kho (CÒN HÀNG / HẾT HÀNG),
- * các thông số kỹ thuật động theo danh mục và xuất xứ/gửi từ.
- */
 export function ProductSpecsTable({ product }: ProductSpecsTableProps) {
   const isOutOfStock = (product.stock ?? 0) <= 0;
 
-  // Breadcrumb danh mục (Shopee style: Trang chủ > [Category] > [Brand/Type])
   const categoryPath = product.categoryPath && product.categoryPath.length > 0
     ? product.categoryPath
     : ['Trang chủ', product.category || 'Công nghệ', product.name.split(' ')[0]];
 
-  // Gom các chi tiết thông số
   const detailRows: { label: string; value: string }[] = [];
 
-  // 1. Danh mục breadcrumb
   detailRows.push({
     label: 'Danh mục',
     value: categoryPath.join('  >  '),
   });
 
-  // 2. Thương hiệu
   if (product.brandName) {
     detailRows.push({
       label: 'Thương hiệu',
@@ -38,13 +29,11 @@ export function ProductSpecsTable({ product }: ProductSpecsTableProps) {
     });
   }
 
-  // 3. Số sản phẩm còn lại (Tình trạng kho hàng)
   detailRows.push({
     label: 'Kho hàng',
     value: isOutOfStock ? 'HẾT HÀNG' : `CÒN HÀNG (${product.stock ?? 0} sản phẩm)`,
   });
 
-  // 4. Số lượng khuyến mãi
   if (product.promotionQuantity) {
     detailRows.push({
       label: 'Số lượng khuyến mãi',
@@ -52,7 +41,6 @@ export function ProductSpecsTable({ product }: ProductSpecsTableProps) {
     });
   }
 
-  // 5. Các cặp label/value từ product.details nếu có
   if (product.details && product.details.length > 0) {
     product.details.forEach((d) => {
       if (d.label && d.value) {
@@ -60,13 +48,11 @@ export function ProductSpecsTable({ product }: ProductSpecsTableProps) {
       }
     });
   } else if (product.specs) {
-    // Fallback sang specs có sẵn
     Object.entries(product.specs).forEach(([k, v]) => {
       detailRows.push({ label: k, value: String(v) });
     });
   }
 
-  // 6. Gửi từ / Xuất xứ
   detailRows.push({
     label: 'Gửi từ',
     value: product.origin || 'Kho tổng E-Commerce, TP. Hà Nội',

@@ -13,7 +13,6 @@ interface ConfirmSheetProps {
   onCancel: () => void;
 }
 
-/** Modal xác nhận đơn giản (thay Alert khi cần UI tuỳ chỉnh). */
 export function ConfirmSheet({
   visible,
   title,

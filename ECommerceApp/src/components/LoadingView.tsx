@@ -6,7 +6,6 @@ interface LoadingViewProps {
   label?: string;
 }
 
-/** Màn loading trung tâm đơn giản. */
 export function LoadingView({ label = 'Đang tải...' }: LoadingViewProps) {
   return (
     <View style={styles.container} accessibilityLabel={label}>

@@ -28,7 +28,6 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Quên mật khẩu state
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -117,7 +116,7 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
+          {}
           <View style={styles.header}>
             <View style={styles.logoBadge}>
               <Ionicons name="bag-handle" size={32} color={colors.white} />
@@ -128,7 +127,7 @@ export default function LoginScreen() {
             </Text>
           </View>
 
-          {/* Form Card */}
+          {}
           <View style={styles.card}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputWrapper}>
@@ -186,7 +185,7 @@ export default function LoginScreen() {
               </Pressable>
             </View>
 
-            {/* Quên mật khẩu link */}
+            {}
             <View style={styles.forgotPasswordRow}>
               <Pressable
                 onPress={() => {
@@ -202,7 +201,7 @@ export default function LoginScreen() {
               </Pressable>
             </View>
 
-            {/* Login button */}
+            {}
             <PrimaryButton
               title="Đăng nhập"
               icon="arrow-forward"
@@ -212,7 +211,7 @@ export default function LoginScreen() {
             />
           </View>
 
-          {/* Footer */}
+          {}
           <View style={styles.footer}>
             <View style={styles.registerRow}>
               <Text style={styles.registerText}>Chưa có tài khoản? </Text>
@@ -242,7 +241,7 @@ export default function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Modal Khôi phục mật khẩu (UC001 3a) */}
+      {}
       <Modal
         visible={showForgotModal}
         transparent

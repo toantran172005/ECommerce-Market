@@ -30,13 +30,8 @@ function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
   return result;
 }
 
-/**
- * Service quản lý sổ địa chỉ, phương thức thanh toán và cấu hình ứng dụng từ Cloud Firestore 100% thực tế.
- */
 export const ProfileService = {
-  /* ----------------------------- SỔ ĐỊA CHỈ ----------------------------- */
 
-  /** Lấy danh sách địa chỉ giao hàng của người dùng */
   async listAddresses(userId?: string): Promise<Address[]> {
     const uid = userId || auth.currentUser?.uid;
     if (!uid) return [];
@@ -47,7 +42,6 @@ export const ProfileService = {
         return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Address, 'id'>) }));
       }
 
-      // Fallback: Tìm trong root collection shipping_addresses theo ERD
       const { query, where } = await import('firebase/firestore');
       const q = query(collection(db, 'shipping_addresses'), where('userId', '==', uid));
       const rootSnap = await getDocs(q);
@@ -70,7 +64,6 @@ export const ProfileService = {
     }
   },
 
-  /** Thêm địa chỉ mới (đảm bảo duy nhất 1 địa chỉ mặc định) */
   async addAddress(input: Omit<Address, 'id'>, userId?: string): Promise<Address[]> {
     const uid = resolveUid(userId);
     try {
@@ -97,7 +90,6 @@ export const ProfileService = {
         isDefault: willBeDefault,
       };
 
-      // Ghi subcollection và root collection shipping_addresses chuẩn ERD
       batch.set(newRef, stripUndefined(newAddr));
       batch.set(doc(db, 'shipping_addresses', id), {
         id,
@@ -117,7 +109,6 @@ export const ProfileService = {
     }
   },
 
-  /** Cập nhật thông tin địa chỉ */
   async updateAddress(
     id: string,
     patch: Partial<Address>,
@@ -162,7 +153,6 @@ export const ProfileService = {
     }
   },
 
-  /** Xoá địa chỉ nhận hàng */
   async deleteAddress(id: string, userId?: string): Promise<Address[]> {
     const uid = resolveUid(userId);
     try {
@@ -178,7 +168,6 @@ export const ProfileService = {
       batch.delete(doc(db, 'users', uid, 'addresses', id));
       batch.delete(doc(db, 'shipping_addresses', id));
 
-      // Nếu xoá địa chỉ mặc định và còn địa chỉ khác, đặt địa chỉ đầu tiên làm mặc định mới
       if (target.isDefault && remaining.length > 0) {
         batch.set(doc(db, 'users', uid, 'addresses', remaining[0].id), { isDefault: true }, { merge: true });
         batch.set(doc(db, 'shipping_addresses', remaining[0].id), { isDefault: true }, { merge: true });
@@ -191,7 +180,6 @@ export const ProfileService = {
     }
   },
 
-  /** Đặt làm địa chỉ mặc định */
   async setDefaultAddress(id: string, userId?: string): Promise<Address[]> {
     const uid = resolveUid(userId);
     try {
@@ -223,9 +211,6 @@ export const ProfileService = {
     }
   },
 
-  /* ---------------------- PHƯƠNG THỨC THANH TOÁN ---------------------- */
-
-  /** Lấy danh sách phương thức thanh toán của người dùng (COD luôn khả dụng) */
   async listPaymentMethods(userId?: string): Promise<PaymentMethod[]> {
     const codDefault: PaymentMethod = {
       id: 'pay-cod',
@@ -248,7 +233,6 @@ export const ProfileService = {
       list = [];
     }
 
-    // Lọc bỏ document rác nếu có
     list = list.filter((p) => p && p.name && p.detail);
 
     const hasCod = list.some((p) => p.id === 'pay-cod' || p.type === 'cod');
@@ -267,7 +251,6 @@ export const ProfileService = {
     return list;
   },
 
-  /** Thêm thẻ thanh toán mới (Chỉ lưu 4 số cuối last4, bảo mật tuyệt đối) */
   async addPaymentMethod(input: Omit<PaymentMethod, 'id'>, userId?: string): Promise<PaymentMethod[]> {
     const uid = resolveUid(userId);
     try {
@@ -302,7 +285,6 @@ export const ProfileService = {
     }
   },
 
-  /** Xoá phương thức thanh toán (COD là cố định, không thể xoá) */
   async deletePaymentMethod(id: string, userId?: string): Promise<PaymentMethod[]> {
     if (id === 'pay-cod') {
       apiError('CANNOT_DELETE_COD', 'Phương thức thanh toán khi nhận hàng (COD) là mặc định của hệ thống, không thể xoá.');
@@ -333,7 +315,6 @@ export const ProfileService = {
     }
   },
 
-  /** Đặt làm phương thức thanh toán mặc định duy nhất */
   async setDefaultPaymentMethod(id: string, userId?: string): Promise<PaymentMethod[]> {
     const uid = resolveUid(userId);
     try {
@@ -355,9 +336,6 @@ export const ProfileService = {
     }
   },
 
-  /* ------------------------- CÀI ĐẶT ỨNG DỤNG ------------------------- */
-
-  /** Lấy cài đặt ứng dụng cá nhân */
   async getSettings(userId?: string): Promise<AppSettings> {
     const defaultSettings: AppSettings = {
       language: 'vi',
@@ -382,7 +360,6 @@ export const ProfileService = {
     }
   },
 
-  /** Cập nhật cài đặt ứng dụng */
   async updateSettings(patch: Partial<AppSettings>, userId?: string): Promise<AppSettings> {
     const uid = resolveUid(userId);
     try {

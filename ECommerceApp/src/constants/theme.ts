@@ -1,6 +1,3 @@
-/* ==================================================================== */
-/*  Design tokens dùng chung. GIỮ NGUYÊN mọi export cũ.                 */
-/* ==================================================================== */
 
 export const colors = {
   primary: '#FF5722',
@@ -18,7 +15,6 @@ export const colors = {
   star: '#F59E0B',
   white: '#FFFFFF',
 
-  /* --- Token bổ sung --- */
   successSoft: '#E9F9F0',
   dangerSoft: '#FDECEC',
   warning: '#F59E0B',

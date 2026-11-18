@@ -19,11 +19,7 @@ import { colors, radius, spacing } from '../src/constants/theme';
 import { AppNotification, NotificationType, IoniconName } from '../src/types';
 import { formatDate } from '../src/utils/format';
 
-/* -------------------------------------------------------------------------- */
-/*                              Local UI helpers                              */
-/* -------------------------------------------------------------------------- */
 
-/** Đổi createdAt ISO thành chuỗi thời gian tương đối tiếng Việt. */
 function formatRelativeTime(value: string | number): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -41,7 +37,6 @@ function formatRelativeTime(value: string | number): string {
   return formatDate(value);
 }
 
-/** Cấu hình icon + màu theo từng loại thông báo. */
 const NOTIFICATION_META: Record<NotificationType, { icon: IoniconName; color: string; bg: string }> = {
   order: { icon: 'cube-outline', color: colors.primary, bg: colors.primarySoft },
   promo: { icon: 'pricetag-outline', color: colors.success, bg: colors.successSoft },
@@ -62,9 +57,6 @@ function getNotificationMeta(type?: string): { icon: IoniconName; color: string;
   return DEFAULT_META;
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                   Screen                                   */
-/* -------------------------------------------------------------------------- */
 
 export default function NotificationScreen() {
   const router = useRouter();
@@ -135,7 +127,6 @@ export default function NotificationScreen() {
 
   const handlePressNotification = useCallback(
     (item: AppNotification) => {
-      // Đánh dấu đã đọc, sau đó mở modal chi tiết.
       if (!item.read) {
         markAsRead(item.id).catch(() => undefined);
       }
@@ -226,7 +217,7 @@ export default function NotificationScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScreenHeader title="Thông báo" onBack={handleGoBack} right={markAllButton} />
 
-      {/* Nội dung chính: loading -> list -> empty */}
+      {}
       {loading ? (
         <LoadingView label="Đang tải thông báo..." />
       ) : notifications.length === 0 ? (
@@ -249,7 +240,7 @@ export default function NotificationScreen() {
         />
       )}
 
-      {/* Modal chi tiết thông báo */}
+      {}
       <Modal
         visible={selectedNotification !== null}
         transparent
@@ -310,9 +301,6 @@ export default function NotificationScreen() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                 Stylesheet                                 */
-/* -------------------------------------------------------------------------- */
 
 const styles = StyleSheet.create({
   safe: {
@@ -320,7 +308,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  /* Nút "Đánh dấu đã đọc" trên header */
   markAllButton: {
     minHeight: 44,
     paddingHorizontal: 4,
@@ -336,7 +323,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
-  /* Danh sách thông báo */
   listContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
@@ -417,7 +403,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
-  /* Modal chi tiết */
   modalRoot: {
     flex: 1,
     justifyContent: 'center',

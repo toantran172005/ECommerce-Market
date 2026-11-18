@@ -21,8 +21,8 @@ import { EmptyState } from '../../src/components/EmptyState';
 import { RatingStars } from '../../src/components/RatingStars';
 import { formatMoney, calcDiscountPercent } from '../../src/utils/format';
 
-const HORIZONTAL_PADDING = spacing.lg; // 16
-const GRID_GAP = spacing.md; // 12
+const HORIZONTAL_PADDING = spacing.lg; 
+const GRID_GAP = spacing.md; 
 
 export default function FavouriteScreen() {
   const router = useRouter();
