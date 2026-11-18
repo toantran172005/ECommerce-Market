@@ -17,7 +17,6 @@ const VARIANTS: Record<BadgeVariant, { bg: string; text: string }> = {
   dark: { bg: colors.dark, text: colors.white },
 };
 
-/** Nhãn trạng thái nhỏ. */
 export function Badge({ label, variant = 'primary' }: BadgeProps) {
   const palette = VARIANTS[variant];
   return (

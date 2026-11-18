@@ -10,14 +10,7 @@ import { OrdersProvider } from './OrdersContext';
 import { CheckoutProvider } from './CheckoutContext';
 import { ProductFilterProvider } from './ProductFilterContext';
 
-/**
- * Gộp toàn bộ Provider theo thứ tự phụ thuộc:
- * - Auth ngoài cùng (mọi context con đều dùng được useAuth).
- * - Cart trước Orders (OrdersContext dùng useCart để mua lại).
- * - Checkout trong cùng vì nó gọi useCart + useOrders + useNotifications + ...
- */
 export function AppProviders({ children }: { children: ReactNode }) {
-  // Khi logout, bump resetKey để các context reset dữ liệu người dùng.
   const [resetKey, setResetKey] = useState(0);
   const handleLogout = () => setResetKey((key) => key + 1);
 

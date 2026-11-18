@@ -22,7 +22,6 @@ interface ProductCardProps {
   style?: ViewStyle;
 }
 
-/** Card sản phẩm dùng chung cho lưới 2 cột. Đã tách nút yêu thích làm sibling để tránh DOM nesting lỗi trên Web. */
 export function ProductCard({
   product,
   onPress,

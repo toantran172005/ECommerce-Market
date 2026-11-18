@@ -69,11 +69,7 @@ export interface CreateTicketInput {
   message: string;
 }
 
-/**
- * Service quản lý trung tâm trợ giúp FAQ và phiếu hỗ trợ kỹ thuật (Tickets).
- */
 export const SupportService = {
-  /** Lấy danh sách nhóm câu hỏi thường gặp */
   async getFaqGroups(): Promise<FaqGroup[]> {
     try {
       const snap = await getDocs(collection(db, 'faqGroups'));
@@ -86,7 +82,6 @@ export const SupportService = {
     }
   },
 
-  /** Lấy danh sách toàn bộ câu hỏi và câu trả lời FAQ */
   async getFaqs(): Promise<Faq[]> {
     try {
       const snap = await getDocs(collection(db, 'faqs'));
@@ -99,7 +94,6 @@ export const SupportService = {
     }
   },
 
-  /** Lấy danh sách các yêu cầu hỗ trợ của một người dùng */
   async listTickets(userId: string): Promise<SupportTicket[]> {
     if (!userId) return [];
 
@@ -115,7 +109,6 @@ export const SupportService = {
     }
   },
 
-  /** Gửi yêu cầu hỗ trợ mới vào Firestore */
   async createTicket(input: CreateTicketInput): Promise<SupportTicket> {
     if (!input.userId) {
       apiError('AUTH_REQUIRED', 'Vui lòng đăng nhập trước khi gửi yêu cầu hỗ trợ.');

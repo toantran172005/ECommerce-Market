@@ -13,7 +13,6 @@ interface EmptyStateProps {
   onAction?: () => void;
 }
 
-/** Khối rỗng dùng chung cho danh sách không có dữ liệu. */
 export function EmptyState({ icon, title, subtitle, actionLabel, onAction }: EmptyStateProps) {
   return (
     <View style={styles.container}>

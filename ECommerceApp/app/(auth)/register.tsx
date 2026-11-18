@@ -19,7 +19,6 @@ import { getErrorMessage } from '../../src/services';
 import { colors, radius, spacing } from '../../src/constants/theme';
 import { isValidEmail, isValidPhoneVn, isValidPassword } from '../../src/utils/format';
 
-/** Ô nhập mật khẩu có nút hiện/ẩn, dùng chung cho mật khẩu và xác nhận. */
 function PasswordInput({
   label,
   value,
@@ -118,7 +117,6 @@ export default function RegisterScreen() {
         phone: phone.trim(),
         password,
       });
-      // Đăng ký thành công, AuthContext đã set user, router guard sẽ đưa về Home.
       router.replace('/(tabs)/home');
     } catch (error) {
       Alert.alert('Đăng ký thất bại', getErrorMessage(error));
@@ -138,7 +136,7 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
+          {}
           <View style={styles.header}>
             <Pressable
               style={styles.backButton}
@@ -155,7 +153,7 @@ export default function RegisterScreen() {
             </Text>
           </View>
 
-          {/* Form */}
+          {}
           <View style={styles.form}>
             <FormField
               label="Họ và tên"
@@ -203,7 +201,7 @@ export default function RegisterScreen() {
               onToggleShowPassword={() => setShowConfirmPassword((prev) => !prev)}
             />
 
-            {/* Terms checkbox */}
+            {}
             <Pressable
               style={styles.termsRow}
               onPress={() => setAgreeTerms((prev) => !prev)}
@@ -230,7 +228,7 @@ export default function RegisterScreen() {
             />
           </View>
 
-          {/* Footer */}
+          {}
           <View style={styles.footer}>
             <Text style={styles.footerText}>Đã có tài khoản? </Text>
             <Pressable
@@ -262,7 +260,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
 
-  /* Header */
   header: {
     paddingTop: spacing.sm,
     marginBottom: spacing.xl,
@@ -292,7 +289,6 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
 
-  /* Form */
   form: {
     flex: 1,
   },
@@ -330,7 +326,6 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
 
-  /* Terms */
   termsRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -365,7 +360,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  /* Footer */
   footer: {
     flexDirection: 'row',
     alignItems: 'center',

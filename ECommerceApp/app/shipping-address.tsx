@@ -61,7 +61,6 @@ interface AddressCardProps {
   onDelete: () => void;
 }
 
-/** Xác định icon cho nhãn địa chỉ: chỉ dùng briefcase-outline cho văn phòng/công ty, còn lại home-outline. */
 function getAddressLabelIcon(label: string): IoniconName {
   const normalized = label.toLowerCase();
   if (
@@ -74,7 +73,6 @@ function getAddressLabelIcon(label: string): IoniconName {
   return 'home-outline';
 }
 
-/** Card hiển thị một địa chỉ. */
 function AddressCard({
   address,
   isSelected,
@@ -182,11 +180,9 @@ export default function ShippingAddressScreen() {
     useAddresses();
   const { addressId: checkoutAddressId, setAddressId } = useCheckout();
 
-  // Chọn địa chỉ hiện tại từ checkout nếu có, ngược lại dùng mặc định.
   const initialSelectedId = checkoutAddressId || defaultAddress?.id || addresses[0]?.id || '';
   const [selectedId, setSelectedId] = useState(initialSelectedId);
 
-  // Modal thêm / sửa địa chỉ.
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [form, setForm] = useState<AddressForm>({
@@ -203,14 +199,11 @@ export default function ShippingAddressScreen() {
   const [formErrors, setFormErrors] = useState<AddressFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Xác nhận xoá.
   const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
 
-  // Toast thông báo.
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Tự đồng bộ selectedId khi danh sách thay đổi.
   useEffect(() => {
     if (!addresses.some((a) => a.id === selectedId)) {
       setSelectedId(defaultAddress?.id ?? addresses[0]?.id ?? '');
@@ -428,7 +421,7 @@ export default function ShippingAddressScreen() {
         />
       </View>
 
-      {/* Modal thêm / sửa địa chỉ */}
+      {}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -455,7 +448,7 @@ export default function ShippingAddressScreen() {
               icon="pricetag-outline"
             />
 
-            {/* Chip chọn nhanh */}
+            {}
             <View style={styles.labelChipRow}>
               <Pressable
                 onPress={() => setQuickLabel('Nhà riêng')}
@@ -564,7 +557,7 @@ export default function ShippingAddressScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* Xác nhận xoá */}
+      {}
       <ConfirmSheet
         visible={addressToDelete !== null}
         title="Xóa địa chỉ"
@@ -576,15 +569,13 @@ export default function ShippingAddressScreen() {
         onCancel={() => setAddressToDelete(null)}
       />
 
-      {/* Toast thông báo */}
+      {}
       <Toast
         message={toastMessage}
         visible={toastVisible}
         duration={1200}
         onHide={() => {
           setToastVisible(false);
-          // Không tự động router.back() để cho phép chỉnh sửa/xoá liên tục.
-          // router.back() vẫn có thể dùng khi cần, nhưng hiện tại không bắt buộc.
         }}
       />
     </SafeAreaView>
@@ -640,7 +631,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  /* Card */
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.lg,
@@ -654,7 +644,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarySoft,
   },
   cardMainPress: {
-    // Không cần style, chỉ để tách vùng chọn địa chỉ.
   },
   cardTop: {
     flexDirection: 'row',
@@ -708,7 +697,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
 
-  /* Info rows */
   infoRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -743,7 +731,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
 
-  /* Card actions */
   cardActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -785,7 +772,6 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
 
-  /* Footer */
   footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -795,7 +781,6 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
 
-  /* Modal */
   modalSafe: {
     flex: 1,
     backgroundColor: colors.background,
@@ -807,7 +792,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
 
-  /* Chip chọn nhãn */
   labelChipRow: {
     flexDirection: 'row',
     marginTop: spacing.sm,

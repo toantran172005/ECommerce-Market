@@ -26,7 +26,6 @@ interface ProductFilterContextValue {
   setPriceRange: (min: number | null, max: number | null) => void;
   setMinRating: (rating: number | null) => void;
   setSort: (sort: ProductSort) => void;
-  /** Áp nguyên bộ lọc từ màn Filter. */
   applyFilters: (patch: Partial<ProductFilterState>) => void;
   resetFilters: () => void;
   isFiltered: boolean;

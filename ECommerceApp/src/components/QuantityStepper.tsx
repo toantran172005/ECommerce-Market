@@ -10,8 +10,7 @@ interface QuantityStepperProps {
   max?: number;
 }
 
-/** Nút tăng/giảm số lượng, chặn đúng min/max. */
-export function QuantityStepper({ value, onChange, min = 1, max = 10 }: QuantityStepperProps) {
+export function QuantityStepper({ value, onChange, min = 1, max = 9999 }: QuantityStepperProps) {
   const decrease = () => onChange(Math.max(min, value - 1));
   const increase = () => onChange(Math.min(max, value + 1));
 

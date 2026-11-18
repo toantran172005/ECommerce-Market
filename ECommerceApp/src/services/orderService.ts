@@ -46,11 +46,7 @@ export interface CreateOrderInput {
   note?: string;
 }
 
-/**
- * Service quản lý đặt hàng, huỷ đơn và mua lại 100% qua Cloud Firestore Transactions.
- */
 export const OrderService = {
-  /** Lấy danh sách toàn bộ đơn hàng của một người dùng */
   async listOrders(userId: string): Promise<Order[]> {
     if (!userId) return [];
 
@@ -67,7 +63,6 @@ export const OrderService = {
     }
   },
 
-  /** Lấy chi tiết một đơn hàng theo ID */
   async getOrder(id: string): Promise<Order> {
     try {
       const snap = await getDoc(doc(db, 'orders', id));
@@ -81,14 +76,6 @@ export const OrderService = {
     }
   },
 
-  /**
-   * Tạo đơn hàng mới qua Firestore Transaction nguyên tử:
-   * 1. Xác thực tồn kho từng mặt hàng trực tiếp từ Firestore.
-   * 2. Lấy giá chuẩn từ Database, không chấp nhận giá can thiệp từ client.
-   * 3. Trừ tồn kho và tăng lượt bán.
-   * 4. Áp dụng mã giảm giá và kiểm tra điều kiện.
-   * 5. Ghi nhận thông báo đặt hàng thành công.
-   */
   async createOrder(input: CreateOrderInput): Promise<Order> {
     if (!input.userId) {
       apiError('AUTH_REQUIRED', 'Vui lòng đăng nhập trước khi tiến hành thanh toán.');
@@ -110,12 +97,7 @@ export const OrderService = {
 
     try {
       return await runTransaction(db, async (transaction) => {
-        // ========================================================
-        // GIAI ĐOẠN 1: TẤT CẢ CÁC LỆNH ĐỌC (READS ONLY)
-        // Bắt buộc thực hiện trước toàn bộ các lệnh ghi trong Firestore
-        // ========================================================
 
-        // 1. Đọc tất cả sản phẩm
         const productReads: {
           rawItem: OrderItem;
           prodRef: any;
@@ -128,14 +110,12 @@ export const OrderService = {
           productReads.push({ rawItem, prodRef, prodSnap });
         }
 
-        // 2. Đọc phương thức vận chuyển (nếu có)
         let shipSnap: any = null;
         if (input.shippingMethodId) {
           const shipRef = doc(db, 'shippingMethods', input.shippingMethodId);
           shipSnap = await transaction.get(shipRef);
         }
 
-        // 3. Đọc mã giảm giá từ collection 'promos' (chuẩn SDS)
         let activeVoucherRef: any = null;
         let activeVoucherSnap: any = null;
         if (input.voucherCode) {
@@ -147,10 +127,6 @@ export const OrderService = {
             activeVoucherSnap = promoSnap;
           }
         }
-
-        // ========================================================
-        // XỬ LÝ & VALIDATION LOGIC TRONG BỘ NHỚ (IN-MEMORY)
-        // ========================================================
 
         const verifiedItems: OrderItem[] = [];
         let computedSubtotal = 0;
@@ -195,7 +171,6 @@ export const OrderService = {
           computedSubtotal += price * rawItem.quantity;
         }
 
-        // Tính phí ship
         let baseShipping = 30000;
         let finalShippingMethodName = input.shippingMethodName || 'Giao hàng tiêu chuẩn';
         if (shipSnap && shipSnap.exists()) {
@@ -204,7 +179,6 @@ export const OrderService = {
           finalShippingMethodName = sData.name;
         }
 
-        // Tính giảm giá Voucher
         let discount = 0;
         let isFreeShip = false;
         let voucherUpdate: { ref: any; newUsedCount: number } | null = null;
@@ -249,11 +223,6 @@ export const OrderService = {
         const shippingFee = isFreeShip ? 0 : baseShipping;
         const totalAmount = Math.max(0, computedSubtotal - discount + shippingFee);
 
-        // ========================================================
-        // GIAI ĐOẠN 2: TẤT CẢ CÁC LỆNH GHI (WRITES ONLY)
-        // ========================================================
-
-        // 1. Cập nhật tồn kho sản phẩm
         for (const update of productUpdates) {
           transaction.update(update.ref, {
             stock: update.newStock,
@@ -261,14 +230,12 @@ export const OrderService = {
           });
         }
 
-        // 2. Cập nhật lượt dùng voucher
         if (voucherUpdate) {
           transaction.update(voucherUpdate.ref, {
             usedCount: voucherUpdate.newUsedCount,
           });
         }
 
-        // 3. Tạo document đơn hàng
         const newOrder: Order = {
           id: orderId,
           userId: input.userId,
@@ -300,7 +267,6 @@ export const OrderService = {
 
         transaction.set(doc(db, 'orders', orderId), stripUndefined(newOrder));
 
-        // 3b. Lưu các mặt hàng vào root collection 'order_items' theo chuẩn ERD
         verifiedItems.forEach((it, idx) => {
           const itemDocId = `${orderId}_${idx + 1}`;
           const itemRef = doc(db, 'order_items', itemDocId);
@@ -319,7 +285,6 @@ export const OrderService = {
           }));
         });
 
-        // 4. Tạo thông báo cho user (ghi vào subcollection và root collection 'notifications')
         const notifDocId = `notif_${orderId}`;
         const notifRef = doc(db, 'users', input.userId, 'notifications', notifDocId);
         const notifTitle = `Đặt hàng #${orderId} thành công 🎉`;
@@ -354,13 +319,6 @@ export const OrderService = {
     }
   },
 
-  /**
-   * Huỷ đơn hàng:
-   * 1. Chỉ cho phép huỷ khi trạng thái là pending hoặc processing.
-   * 2. Hoàn lại tồn kho cho từng sản phẩm trong Firestore Transaction.
-   * 3. Giảm usedCount của voucher nếu có sử dụng.
-   * 4. Gửi thông báo huỷ đơn.
-   */
   async cancelOrder(id: string, reason: string): Promise<Order> {
     if (!reason || !reason.trim()) {
       apiError('ORDER_CANCEL_MISSING_REASON', 'Vui lòng nhập lý do huỷ đơn hàng.');
@@ -381,9 +339,6 @@ export const OrderService = {
           apiError('ORDER_CANCEL_NOT_ALLOWED', 'Đơn hàng đã đóng gói hoặc đang giao, không thể huỷ.');
         }
 
-        // ==========================================
-        // GIAI ĐOẠN 1: TẤT CẢ CÁC THAO TÁC READS
-        // ==========================================
         const productSnapshots: Array<{
           ref: any;
           snap: any;
@@ -407,9 +362,6 @@ export const OrderService = {
           }
         }
 
-        // ==========================================
-        // GIAI ĐOẠN 2: TẤT CẢ CÁC THAO TÁC WRITES
-        // ==========================================
         for (const item of productSnapshots) {
           if (item.snap.exists()) {
             const prodData = item.snap.data() as Product;
@@ -442,7 +394,6 @@ export const OrderService = {
 
         transaction.set(orderRef, stripUndefined(updated));
 
-        // Tạo thông báo huỷ đơn cho user (cả subcollection và root 'notifications')
         const notifDocId = `notif_cancel_${id}_${Date.now()}`;
         const targetUserId = order.userId || auth.currentUser?.uid || 'user_test_default';
         const currentUid = auth.currentUser?.uid;
@@ -485,10 +436,6 @@ export const OrderService = {
     }
   },
 
-  /**
-   * Mua lại đơn hàng cũ:
-   * Kiểm tra và chỉ giữ lại các sản phẩm còn hàng với giá bán hiện tại từ Firestore.
-   */
   async reorder(id: string): Promise<OrderItem[]> {
     const order = await this.getOrder(id);
     const validItems: OrderItem[] = [];
@@ -501,7 +448,7 @@ export const OrderService = {
           if ((currentProd.stock ?? 0) > 0) {
             validItems.push({
               ...item,
-              price: currentProd.price, // Dùng giá cập nhật hiện tại
+              price: currentProd.price, 
             });
           }
         }
@@ -515,13 +462,6 @@ export const OrderService = {
     return validItems;
   },
 
-  /**
-   * Tự động chuyển trạng thái đơn hàng mỗi 5s:
-   * pending (Chờ xử lý, canCancel: true)
-   * -> sau 5s -> processing (Đã xác nhận, canCancel: true)
-   * -> sau 5s -> shipped (Đang vận chuyển, canCancel: false, khoá nút huỷ)
-   * -> sau 5s -> delivered (Đã giao hàng, canCancel: false, khoá các nút, mở đánh giá)
-   */
   async advanceOrderStatusIfDue(orderId: string): Promise<Order | null> {
     const orderRef = doc(db, 'orders', orderId);
 
@@ -538,7 +478,6 @@ export const OrderService = {
         const now = Date.now();
         const nowIso = new Date(now).toISOString();
 
-        // Kiểm tra điều kiện thời gian 7s
         let nextStatusAt = order.nextStatusAt;
         if (!nextStatusAt) {
           const createdTime = typeof order.createdAt === 'number'
@@ -558,17 +497,17 @@ export const OrderService = {
 
         if (order.status === 'pending') {
           nextStatus = 'processing';
-          canCancel = true; // Ở pending & processing được huỷ
+          canCancel = true; 
           notifTitle = `Đơn hàng #${orderId} đã được xác nhận`;
           notifMessage = `Đơn hàng #${orderId} đã được người bán xác nhận và đang đóng gói.`;
         } else if (order.status === 'processing') {
           nextStatus = 'shipped';
-          canCancel = false; // Đang vận chuyển -> khoá nút huỷ!
+          canCancel = false; 
           notifTitle = `Đơn hàng #${orderId} đang vận chuyển 🚚`;
           notifMessage = `Đơn hàng #${orderId} đã được giao cho đơn vị vận chuyển và đang trên đường giao đến bạn.`;
         } else if (order.status === 'shipped') {
           nextStatus = 'delivered';
-          canCancel = false; // Đã giao hàng -> khoá nút huỷ, mở đánh giá!
+          canCancel = false; 
           notifTitle = `Đơn hàng #${orderId} đã giao thành công 🎉`;
           notifMessage = `Đơn hàng #${orderId} đã được giao thành công. Hãy đánh giá các sản phẩm bạn nhé!`;
         }
@@ -599,7 +538,6 @@ export const OrderService = {
 
         transaction.set(orderRef, stripUndefined(updatedOrder));
 
-        // Tạo thông báo cho user
         const notifDocId = `notif_status_${orderId}_${nextStatus}_${now}`;
         const targetUserId = order.userId || auth.currentUser?.uid || 'user_test_default';
         const currentUid = auth.currentUser?.uid;

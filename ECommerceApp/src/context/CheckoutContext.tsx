@@ -54,7 +54,6 @@ export function CheckoutProvider({
   const [lastPlacedOrder, setLastPlacedOrder] = useState<Order | null>(null);
   const [placing, setPlacing] = useState(false);
 
-  // Tự chọn địa chỉ + thẻ mặc định khi dữ liệu tải xong.
   useEffect(() => {
     if (!addressId && addresses.defaultAddress) {
       setAddressId(addresses.defaultAddress.id);
@@ -128,7 +127,6 @@ export function CheckoutProvider({
       });
 
       orders.addOrder(created);
-      cart.clearSelected();
       cart.removeVoucher();
       setLastPlacedOrder(created);
 

@@ -8,7 +8,6 @@ import { useAuth } from '../src/context/AuthContext';
 import { colors } from '../src/constants/theme';
 import { FloatingChatButton, ChatBotModal } from '../src/components';
 
-/** Màn splash ngắn trong lúc khởi tạo auth state. */
 function SplashOverlay() {
   return (
     <View style={styles.splash}>
@@ -20,7 +19,6 @@ function SplashOverlay() {
   );
 }
 
-/** Điều hướng chính + route guard. */
 function RootNavigator() {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
@@ -35,10 +33,8 @@ function RootNavigator() {
     const isInAuthGroup = segments[0] === '(auth)';
 
     if (!user && !isInAuthGroup) {
-      // Chưa đăng nhập -> buộc về màn login.
       router.replace('/(auth)/login');
     } else if (user && !user.isGuest && isInAuthGroup) {
-      // Đã đăng nhập tài khoản thật mà đang ở màn auth -> về Home.
       router.replace('/(tabs)/home');
     }
   }, [user, isLoading, segments, router]);
@@ -61,7 +57,7 @@ function RootNavigator() {
         <Stack.Screen name="update-user" options={{ headerShown: false }} />
         <Stack.Screen name="app-settings" options={{ headerShown: false }} />
 
-        {/* Chỉ filter là bottom sheet modal */}
+        {}
         <Stack.Screen
           name="filter"
           options={{

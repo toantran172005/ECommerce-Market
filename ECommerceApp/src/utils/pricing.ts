@@ -2,14 +2,12 @@ import { CartItem, ShippingMethod, Voucher } from '../types';
 
 export const TAX_RATE = 0.08;
 
-/** Tổng tiền của các sản phẩm ĐƯỢC CHỌN trong giỏ. */
 export function computeSubtotal(items: CartItem[]): number {
   return items
     .filter((item) => item.selected)
     .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 }
 
-/** Số tiền giảm từ voucher. Voucher freeShip giảm đúng phí ship. */
 export function computeVoucherDiscount(
   voucher: Voucher | null,
   subtotal: number,
@@ -34,7 +32,6 @@ export interface CartTotals {
   total: number;
 }
 
-/** Tính đầy đủ: tạm tính, giảm giá, phí ship, thuế, tổng cộng. */
 export function computeCartTotals(
   items: CartItem[],
   voucher: Voucher | null,

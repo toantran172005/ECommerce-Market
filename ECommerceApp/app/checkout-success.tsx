@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors, radius, spacing } from '../src/constants/theme';
 import { useCheckout } from '../src/context/CheckoutContext';
+import { useCart } from '../src/context/CartContext';
 import { PrimaryButton, SecondaryButton } from '../src/components/Button';
 import { EmptyState } from '../src/components/EmptyState';
 import { formatMoney } from '../src/utils/format';
@@ -43,7 +44,6 @@ const CONFETTI: ConfettiDot[] = [
   { color: '#EF4444', size: 8, style: { top: 62, right: 60 } },
 ];
 
-/** Bước mặc định nếu order.timeline không có. */
 const FALLBACK_STEPS: StepItem[] = [
   { key: 'ordered', label: 'Đặt hàng', icon: 'checkmark', active: true },
   { key: 'processing', label: 'Xử lý', icon: 'cube-outline' },
@@ -51,7 +51,6 @@ const FALLBACK_STEPS: StepItem[] = [
   { key: 'delivered', label: 'Đã giao', icon: 'home-outline' },
 ];
 
-/** Lấy 4 bước hiển thị từ timeline của đơn hoặc dùng bước mặc định. */
 function getSteps(order: Order): StepItem[] {
   if (order.timeline && order.timeline.length >= 4) {
     return order.timeline.slice(0, 4).map((step) => ({
@@ -67,20 +66,21 @@ function getSteps(order: Order): StepItem[] {
 export default function CheckoutSuccessScreen() {
   const router = useRouter();
   const { lastPlacedOrder } = useCheckout();
+  const { clearCart } = useCart();
 
-  // Dữ liệu đơn vừa đặt (nếu có)
+  useEffect(() => {
+    clearCart();
+  }, [clearCart]);
+
   const order = lastPlacedOrder;
 
-  // Tổng số sản phẩm
   const itemsCount = useMemo(
     () => order?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
     [order],
   );
 
-  // Các bước tiến trình
   const steps = useMemo(() => (order ? getSteps(order) : FALLBACK_STEPS), [order]);
 
-  // Nếu chưa có đơn (truy cập trực tiếp), hiển thị EmptyState
   if (!order) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -113,7 +113,7 @@ export default function CheckoutSuccessScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Success badge */}
+        {}
         <View style={styles.badgeArea}>
           {CONFETTI.map((dot, index) => (
             <View
@@ -140,13 +140,13 @@ export default function CheckoutSuccessScreen() {
           </View>
         </View>
 
-        {/* Title */}
+        {}
         <Text style={styles.title}>Đặt hàng thành công!</Text>
         <Text style={styles.subtitle}>
           Cảm ơn bạn đã mua sắm. Xác nhận đơn hàng đã được gửi đến email của bạn.
         </Text>
 
-        {/* Summary card */}
+        {}
         <View style={styles.card}>
           <View style={styles.orderNumberRow}>
             <Text style={styles.orderNumberLabel}>Mã đơn hàng</Text>
@@ -188,7 +188,7 @@ export default function CheckoutSuccessScreen() {
           </View>
         </View>
 
-        {/* Stepper */}
+        {}
         <View style={styles.stepper}>
           {steps.map((step, index) => {
             const isLast = index === steps.length - 1;
@@ -221,7 +221,7 @@ export default function CheckoutSuccessScreen() {
           })}
         </View>
 
-        {/* Primary action */}
+        {}
         <PrimaryButton
           title="Xem chi tiết đơn hàng"
           icon="chevron-forward"
@@ -229,7 +229,7 @@ export default function CheckoutSuccessScreen() {
           style={styles.primaryButton}
         />
 
-        {/* Secondary action */}
+        {}
         <SecondaryButton
           title="Tiếp tục mua sắm"
           icon="home-outline"
@@ -256,7 +256,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
 
-  /* Success badge */
   badgeArea: {
     width: 200,
     height: 200,
@@ -297,7 +296,6 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
 
-  /* Texts */
   title: {
     marginTop: spacing.sm,
     fontSize: 26,
@@ -316,7 +314,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
 
-  /* Card */
   card: {
     marginTop: spacing.xl,
     backgroundColor: colors.card,
@@ -382,7 +379,6 @@ const styles = StyleSheet.create({
     color: colors.dark,
   },
 
-  /* Stepper */
   stepper: {
     marginTop: spacing.xl,
     flexDirection: 'row',
@@ -437,7 +433,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  /* Buttons spacing */
   primaryButton: {
     marginTop: spacing.xl,
   },

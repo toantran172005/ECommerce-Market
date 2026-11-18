@@ -8,7 +8,6 @@ interface UseAsyncResult<T> {
   run: () => Promise<void>;
 }
 
-/** Chạy một hàm async, quản lý loading + error đơn giản. */
 export function useAsync<T>(fn: () => Promise<T>, deps: readonly unknown[] = []): UseAsyncResult<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +24,6 @@ export function useAsync<T>(fn: () => Promise<T>, deps: readonly unknown[] = [])
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(() => {

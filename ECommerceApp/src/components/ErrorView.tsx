@@ -8,7 +8,6 @@ interface ErrorViewProps {
   onRetry?: () => void;
 }
 
-/** Khối báo lỗi + nút thử lại (nếu có). */
 export function ErrorView({ message, onRetry }: ErrorViewProps) {
   return (
     <View style={styles.container}>

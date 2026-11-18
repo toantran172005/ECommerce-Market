@@ -54,7 +54,6 @@ export function NotificationsProvider({
   }, [loadNotifications, resetKey]);
 
   const markAsRead = useCallback(async (id: string) => {
-    // Cập nhật lạc quan (optimistic) tức thì để biến mất red dot và đổi nền thẻ
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
@@ -62,7 +61,6 @@ export function NotificationsProvider({
       const updated = await NotificationService.markAsRead(id, user?.uid);
       setNotifications((prev) => prev.map((n) => (n.id === id ? updated : n)));
     } catch {
-      // Giữ nguyên trạng thái đã đọc trên giao diện người dùng
     }
   }, [user?.uid]);
 
@@ -72,7 +70,6 @@ export function NotificationsProvider({
       const updated = await NotificationService.markAllAsRead(user?.uid);
       setNotifications(updated);
     } catch {
-      // Giữ nguyên trạng thái đã đọc trên giao diện người dùng
     }
   }, [user?.uid]);
 

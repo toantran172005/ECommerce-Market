@@ -12,9 +12,6 @@ interface ProductReviewsListProps {
   reviewCount?: number;
 }
 
-/**
- * Hiển thị danh sách đánh giá từ khách hàng đã mua (UC010).
- */
 export function ProductReviewsList({ reviews, rating = 5.0, reviewCount = 0 }: ProductReviewsListProps) {
   return (
     <View style={styles.container}>

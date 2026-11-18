@@ -14,7 +14,6 @@ interface ListItemRowProps {
   showChevron?: boolean;
 }
 
-/** Dòng menu danh sách dùng chung. */
 export function ListItemRow({
   icon,
   title,

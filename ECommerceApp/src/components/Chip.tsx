@@ -8,7 +8,6 @@ interface ChipProps {
   onPress?: () => void;
 }
 
-/** Chip lọc đơn giản, đổi màu khi được chọn. */
 export function Chip({ label, selected, onPress }: ChipProps) {
   return (
     <Pressable

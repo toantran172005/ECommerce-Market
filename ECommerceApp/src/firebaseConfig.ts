@@ -14,7 +14,6 @@ const firebaseConfig = {
 export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 function initAuth(): Auth {
-  // Check if running inside React Native runtime
   const isRN = typeof navigator !== 'undefined' && (navigator as any).product === 'ReactNative';
   if (isRN) {
     try {
@@ -26,7 +25,6 @@ function initAuth(): Auth {
         });
       }
     } catch {
-      // Fallback to getAuth
     }
   }
   return getAuth(app);

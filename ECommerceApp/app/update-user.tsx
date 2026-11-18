@@ -42,7 +42,6 @@ export default function UpdateUserScreen() {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<ProfileField, string>>>({});
 
-  // Đồng bộ dữ liệu từ AuthContext khi user thay đổi
   useEffect(() => {
     if (user) {
       setFullName(user.fullName ?? '');
@@ -78,7 +77,6 @@ export default function UpdateUserScreen() {
     if (key === 'email') setEmail(value);
     if (key === 'phone') setPhone(value);
     if (key === 'address') setAddress(value);
-    // Xoá lỗi của field vừa sửa
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
@@ -206,7 +204,6 @@ export default function UpdateUserScreen() {
         phoneNumber: phone.trim(),
         address: address.trim(),
       };
-      // Nếu người dùng thay đổi avatar, gửi avatarUrl mới (hoặc undefined để xoá)
       if (avatarChanged) {
         patch.avatarUrl = avatarUri ?? undefined;
       }

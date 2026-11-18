@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { logger } from '../utils/logger';
 import { useCart } from '../context/CartContext';
 import { useFavourites } from '../context/FavouritesContext';
 import { useAddresses } from '../context/AddressesContext';
@@ -204,7 +205,7 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
               await auth.logout();
               onClose();
             } catch (err) {
-              console.warn('Logout via chat failed:', err);
+              logger.warn('Logout via chat failed:', err);
             }
           }, 1200);
         }
@@ -252,19 +253,14 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
         setIsLoading(true);
         try {
           const res = await createOrderFromDraft(action.orderDraft, runtime);
-          // Clear cart immediately
           cart.clearCart();
-          // Reload orders context so user profile and orders screen update immediately
           try {
             await orders.loadOrders();
           } catch {
-            // ignore
           }
-          // Reload notifications so notification screen updates with the new order notification
           try {
             await notifications.loadNotifications();
           } catch {
-            // ignore
           }
           setMessages((prev) => [...prev, toUiMessage(res)]);
         } catch (error) {
@@ -535,7 +531,7 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
       <View style={styles.safeArea}>
         <StatusBar barStyle="dark-content" />
 
-        {/* Header với paddingTop tự động đẩy dưới Dynamic Island / Tai thỏ / Status Bar */}
+        {}
         <View style={[styles.header, { paddingTop: topInset + 8 }]}>
           <View style={styles.headerInfo}>
             <View style={styles.avatarWrap}>
@@ -564,7 +560,7 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-          {/* Messages List */}
+          {}
           <FlatList
             ref={flatListRef}
             data={messages}
@@ -587,7 +583,7 @@ export default function ChatBotModal({ visible, onClose }: ChatBotModalProps) {
             </View>
           )}
 
-          {/* Input Bar */}
+          {}
           <View style={[styles.inputContainer, { paddingBottom: Math.max(bottomInset, 12) }]}>
             <TextInput
               style={styles.input}

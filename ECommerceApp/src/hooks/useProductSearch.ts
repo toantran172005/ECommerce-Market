@@ -12,10 +12,6 @@ interface UseProductSearchResult {
   refresh: () => void;
 }
 
-/**
- * Gọi GET /products theo bộ lọc đang chọn.
- * Dùng cho màn Home / tìm kiếm / filter.
- */
 export function useProductSearch(limit = 20): UseProductSearchResult {
   const { filters } = useProductFilter();
   const debouncedQuery = useDebounce(filters.query, 300);

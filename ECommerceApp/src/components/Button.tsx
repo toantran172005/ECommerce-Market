@@ -14,7 +14,6 @@ interface ButtonProps {
   style?: ViewStyle;
 }
 
-/** Nút chính màu primary. */
 export function PrimaryButton({ title, onPress, loading, disabled, icon, style }: ButtonProps) {
   const isDisabled = disabled || loading;
   return (
@@ -44,7 +43,6 @@ export function PrimaryButton({ title, onPress, loading, disabled, icon, style }
   );
 }
 
-/** Nút phụ: viền + nền trắng. */
 export function SecondaryButton({ title, onPress, loading, disabled, icon, style }: ButtonProps) {
   const isDisabled = disabled || loading;
   return (

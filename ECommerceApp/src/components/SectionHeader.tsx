@@ -9,7 +9,6 @@ interface SectionHeaderProps {
   onAction?: () => void;
 }
 
-/** Tiêu đề section + meta bên phải, có thể kèm nút hành động. */
 export function SectionHeader({ title, meta, actionLabel, onAction }: SectionHeaderProps) {
   return (
     <View style={styles.container}>

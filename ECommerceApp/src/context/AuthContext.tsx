@@ -26,7 +26,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 interface AuthProviderProps {
   children: ReactNode;
-  /** AppProviders gọi khi logout để các context khác tự reset dữ liệu người dùng. */
   onLogout?: () => void;
 }
 
@@ -34,7 +33,6 @@ export function AuthProvider({ children, onLogout }: AuthProviderProps) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Lắng nghe và đồng bộ trạng thái xác thực từ Firebase Auth
   useEffect(() => {
     let isMounted = true;
     const unsubscribe = AuthService.onAuthStateChanged(async (firebaseUser) => {

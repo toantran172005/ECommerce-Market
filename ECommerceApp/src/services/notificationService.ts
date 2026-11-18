@@ -47,13 +47,7 @@ function resolveUid(userId?: string): string {
   return 'user_test_default';
 }
 
-/**
- * Service quản lý thông báo người dùng 100% từ Cloud Firestore.
- * Đồng bộ lưu trữ tại root collection 'notifications' theo chuẩn ERD
- * và subcollection 'users/{uid}/notifications'.
- */
 export const NotificationService = {
-  /** Lấy danh sách toàn bộ thông báo của người dùng */
   async listNotifications(userId?: string): Promise<AppNotification[]> {
     const uid = resolveUid(userId);
     if (!uid) return [];
@@ -111,7 +105,6 @@ export const NotificationService = {
       .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
   },
 
-  /** Đánh dấu một thông báo là đã đọc */
   async markAsRead(id: string, userId?: string): Promise<AppNotification> {
     const uid = resolveUid(userId);
     await addPersistedReadId(uid, id);
@@ -141,7 +134,6 @@ export const NotificationService = {
     }
   },
 
-  /** Đánh dấu toàn bộ thông báo của người dùng là đã đọc */
   async markAllAsRead(userId?: string): Promise<AppNotification[]> {
     const uid = resolveUid(userId);
 
@@ -170,7 +162,6 @@ export const NotificationService = {
     }
   },
 
-  /** Tạo thông báo mới cho người dùng (ghi đồng bộ cả subcollection và root 'notifications') */
   async createNotification(input: CreateNotificationInput, userId?: string): Promise<AppNotification> {
     const uid = resolveUid(userId);
     const now = new Date().toISOString();
